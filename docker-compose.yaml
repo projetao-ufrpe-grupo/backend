@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:13.11-bullseye
-    container_name: java-spring-boot-boilerplate-postgres
+    container_name: postgres
     restart: always
     environment:
       POSTGRES_DB: app_db
@@ -12,8 +12,7 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./var/logs/postgresql:/var/log/postgresql
-    networks:
-      - java-spring-boot-boilerplate-network
+
   redis:
     image: redis:7.0.12-alpine
     container_name: java-spring-boot-boilerplate-redis
@@ -24,11 +23,11 @@ services:
     ports:
       - '6379:6379'
     networks:
-      - java-spring-boot-boilerplate-network
+      - db
   redis-commander:
     image: rediscommander/redis-commander:redis-commander-210
     restart: always
-    container_name: java-spring-boot-boilerplate-redis-commander
+    container_name: redis
     environment:
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -39,21 +38,16 @@ services:
     ports:
       - '6380:8081'
     networks:
-      - java-spring-boot-boilerplate-network
+      - redis
   mailhog:
     image: mailhog/mailhog:latest
-    container_name: java-spring-boot-boilerplate-mailhog
+    container_name: mailhog
     restart: always
     ports:
       - '8025:8025'
       - '1025:1025'
-    networks:
-      - java-spring-boot-boilerplate-network
-
+    
 volumes:
   postgres-data:
   redis-data:
 
-networks:
-  java-spring-boot-boilerplate-network:
-    driver: bridge
