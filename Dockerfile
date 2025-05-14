@@ -8,7 +8,7 @@ COPY pom.xml .
 RUN mvn -f /app/pom.xml clean package -DskipTests=true
 
 # -----------------------------------------------------
-
+# Teste de main
     
 # Package stage
 FROM openjdk:21-ea-17-slim-buster as production
