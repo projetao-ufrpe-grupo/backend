@@ -1,0 +1,32 @@
+name: Build do projeto
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+      - dev
+jobs:
+  build:
+    name: Build do backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: adopt
+          java-version: 17
+
+      - name: Setup Maven
+        uses: s4u/setup-maven-actions@v1
+        with:
+          maven-version: 3.9.3
+
+      - name: Build com Maven
+        run: mvn clean package -DskipTests
