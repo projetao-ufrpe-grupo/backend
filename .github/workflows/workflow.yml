@@ -24,9 +24,8 @@ jobs:
           java-version: 17
 
       - name: Setup Maven
-        uses: s4u/setup-maven-actions@v1
-        with:
-          maven-version: 3.9.3
+        run: |
+          sudo apt install maven
 
-      - name: Build com Maven
+      - name: Clean package
         run: mvn clean package -DskipTests
