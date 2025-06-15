@@ -1,17 +1,6 @@
 package com.mewebstudio.javaspringbootboilerplate.entity;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.ForeignKey;
-import jakarta.persistence.Index;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.OneToOne;
-import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -49,6 +38,27 @@ public class User extends AbstractBaseEntity {
 
     @Column(name = "avatar", columnDefinition = "text")
     private String avatar;
+
+    private Integer semestre;
+
+    private TipoUsuario tipoUsuario;
+
+    private String biografia;
+
+    //TODO: implementar validação de CPF e implementar restrição de banco (unique e nullable = false)
+    private String cpf;
+
+    private String caminhoFoto;
+    private String curso;
+
+    // Deve seguir esse padrão: Pampulha, Belo Horizonte - MG / <BAIRRO>, <CIDADE> - <ESTADO>
+    private String regiaoDeInteresse;
+
+    @OneToMany(mappedBy = "anunciante", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Anuncio> anuncios = new ArrayList<>();
+
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+//    private List<Anuncio> anunciosFavoritos = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "user_roles",
