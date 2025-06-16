@@ -9,7 +9,9 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "users", uniqueConstraints = {
@@ -57,8 +59,8 @@ public class User extends AbstractBaseEntity {
     @OneToMany(mappedBy = "anunciante", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Anuncio> anuncios = new ArrayList<>();
 
-//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
-//    private List<Anuncio> anunciosFavoritos = new ArrayList<>();
+    @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    private Set<Anuncio> anunciosFavoritos = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "user_roles",
