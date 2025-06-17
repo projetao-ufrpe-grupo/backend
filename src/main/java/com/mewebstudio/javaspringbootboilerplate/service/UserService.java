@@ -6,7 +6,9 @@ import com.mewebstudio.javaspringbootboilerplate.dto.request.user.AbstractBaseCr
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.AbstractBaseUpdateUserRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.CreateUserRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePasswordRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateProfileRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateUserRequest;
+import com.mewebstudio.javaspringbootboilerplate.entity.TipoUsuario;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
 import com.mewebstudio.javaspringbootboilerplate.entity.specification.UserFilterSpecification;
 import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.PaginationCriteria;
@@ -39,6 +41,7 @@ import org.springframework.validation.FieldError;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -446,6 +449,108 @@ public class UserService {
 
         return user;
     }
+
+    /**
+     * Update user profile.
+     *
+     * @param request UpdateProfileRequest
+     * @return User
+     * @throws BindException if validation fails
+     */
+    public User updateProfile(final UpdateProfileRequest request) throws BindException {
+        User user = getUser();
+        log.info("Updating profile for user with id: {}", user.getId());
+
+        BindingResult bindingResult = new BeanPropertyBindingResult(request, "request");
+        boolean emailChangedAndRequiresVerification = false;
+
+        // Atualizar nome (herdado de AbstractBaseUpdateUserRequest)
+        if (StringUtils.hasText(request.getName()) && !Objects.equals(user.getName(), request.getName())) {
+            user.setName(request.getName());
+        }
+
+        // Atualizar sobrenome (herdado de AbstractBaseUpdateUserRequest)
+        if (StringUtils.hasText(request.getLastName()) && !Objects.equals(user.getLastName(), request.getLastName())) {
+            user.setLastName(request.getLastName());
+        }
+
+        // Atualizar e-mail (herdado de AbstractBaseUpdateUserRequest)
+        if (StringUtils.hasText(request.getEmail()) && !Objects.equals(user.getEmail(), request.getEmail())) {
+            userRepository.findByEmail(request.getEmail()).ifPresent(existingUser -> {
+                if (!existingUser.getId().equals(user.getId())) {
+                    bindingResult.addError(new FieldError(bindingResult.getObjectName(), "email",
+                        messageSourceService.get("unique_email")));
+                }
+            });
+            if (!bindingResult.hasFieldErrors("email")) {
+                user.setEmail(request.getEmail());
+                user.setEmailVerifiedAt(null); // Requer nova verificação
+                emailChangedAndRequiresVerification = true;
+            }
+        }
+
+        // Atualizar senha
+        if (StringUtils.hasText(request.getPassword())) {
+            user.setPassword(passwordEncoder.encode(request.getPassword()));
+        }
+
+        // Atualizar semestre
+        if (request.getSemestre() != null && !Objects.equals(user.getSemestre(), request.getSemestre())) {
+            user.setSemestre(request.getSemestre());
+        }
+
+        // Atualizar tipoUsuario
+        if (StringUtils.hasText(request.getTipoUsuario())) {
+            try {
+                TipoUsuario requestedTipoUsuario = TipoUsuario.valueOf(request.getTipoUsuario());
+                if (!Objects.equals(user.getTipoUsuario(), requestedTipoUsuario)) {
+                    user.setTipoUsuario(requestedTipoUsuario);
+                }
+            } catch (IllegalArgumentException e) {
+                bindingResult.addError(new FieldError(bindingResult.getObjectName(), "tipoUsuario",
+                    messageSourceService.get("invalid_enum_value", new String[]{request.getTipoUsuario()})));
+            }
+        }
+
+        // Atualizar biografia
+        if (request.getBiografia() != null && !Objects.equals(user.getBiografia(), request.getBiografia())) {
+            user.setBiografia(request.getBiografia());
+        }
+
+        // Atualizar caminhoFoto
+        if (request.getCaminhoFoto() != null && !Objects.equals(user.getCaminhoFoto(), request.getCaminhoFoto())) {
+            user.setCaminhoFoto(request.getCaminhoFoto());
+        }
+
+        // Atualizar curso
+        if (request.getCurso() != null && !Objects.equals(user.getCurso(), request.getCurso())) {
+            user.setCurso(request.getCurso());
+        }
+
+        // Atualizar regiaoDeInteresse
+        if (request.getRegiaoDeInteresse() != null && !Objects.equals(user.getRegiaoDeInteresse(), request.getRegiaoDeInteresse())) {
+            user.setRegiaoDeInteresse(request.getRegiaoDeInteresse());
+        }
+
+        if (bindingResult.hasErrors()) {
+            throw new BindException(bindingResult);
+        }
+
+        if (emailChangedAndRequiresVerification) {
+            user.setEmailVerificationToken(emailVerificationTokenService.create(user));
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        if (emailChangedAndRequiresVerification) {
+            eventPublisher.publishEvent(new UserEmailVerificationSendEvent(this, updatedUser));
+            log.info("Email changed for user id: {}. Verification email sent.", updatedUser.getId());
+        }
+
+        log.info("Profile updated for user with id: {}", updatedUser.getId());
+        return updatedUser;
+    }
+
 
     /**
      * E-mail verification event publisher.
