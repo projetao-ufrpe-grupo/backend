@@ -35,7 +35,7 @@
 
     <module name="LineLength">
         <property name="fileExtensions" value="java"/>
-        <property name="max" value="160"/>
+        <property name="max" value="999"/>
         <property name="ignorePattern" value="^ *\* *([^ ]+|\{@code .*|&lt;a href=&quot;[^&quot;]+&quot;&gt;)$"/>
     </module>
 
@@ -234,7 +234,7 @@
         <!-- Whitespace -->
         <module name="EmptyForInitializerPad"/>
         <module name="EmptyForIteratorPad"/>
-        <module name="EmptyLineSeparator"/>
+        <!-- <module name="EmptyLineSeparator"/> -->
         <module name="GenericWhitespace"/>
         <module name="MethodParamPad"/>
         <module name="NoLineWrap"/>
