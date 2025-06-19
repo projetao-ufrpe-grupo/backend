@@ -16,7 +16,7 @@ services:
     container_name: postgres
     restart: always
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres -d app_db" ]
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
       interval: 10s
       retries: 5
       start_period: 30s
