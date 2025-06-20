@@ -28,8 +28,8 @@ app:
   frontend-url: ${APP_FRONTEND_URL:http://localhost:3000}
 
 spring:
-#  profiles:
-#    active: dev
+  profiles:
+    active: dev
   application:
     name: ${APP_NAME:AppName}
     description: ${APP_DESCRIPTION:App Description}
@@ -95,6 +95,9 @@ spring:
   docker:
     compose:
       lifecycle-management: none
+  output:
+    ansi:
+      enabled: always
 
 springdoc:
   api-docs:

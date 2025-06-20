@@ -20,6 +20,12 @@ public final class Constants {
 
     public static final String DATE_TIME_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 
+    public static final int PASSWORD_MIN_LENGTH = 8; 
+
+    public static final int PASSWORD_MAX_LENGTH = 100;
+
+    public static final String PASSWORD_REGEX = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
+
     private Constants() {
     }
 
