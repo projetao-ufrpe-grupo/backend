@@ -4,6 +4,7 @@ from selenium.webdriver.support.ui import Select
 import time
 import re
 import csv
+from bs4 import BeautifulSoup
 
 # # Abrir navegador
 driver = webdriver.Chrome()
@@ -24,18 +25,21 @@ for url in lista_urls:
 
         # Pegar Codigo, Nome da instituição e Sigla
         instituicao_info = driver.find_element(By.XPATH, '//*[@id="listar_ies_endereco"]/table/tbody/tr[2]/td/table/tbody/tr/td[2]')
-        texto = instituicao_info.get_attribute("innerText").replace("\xa0", " ").strip()
+        # Faz o parser
+        # Captura o HTML bruto da <td>
+        html = instituicao_info.get_attribute("innerHTML")
+        soup = BeautifulSoup(html, "html.parser")
+
+        # Remove todas as divs (e tudo dentro delas)
+        for div in soup.find_all("div"):
+            div.decompose()
+
+        # Extrai o texto limpo restante
+        texto = soup.get_text().replace("\xa0", " ").strip()
         print(texto)
-        padrao = r"\((\d+)\)\s*(.*?)\s*-\s*(.+)"
-        match = re.match(padrao, texto)
-
-        if match:                        # Exemplo de formato
-            codigo_instituicao = match.group(1)      # "3881"
-            nome = match.group(2).strip()  # "Centro Universitário FIS"
-            sigla = match.group(3).strip() # "Unifis"
-        else:
-            codigo_instituicao = nome = sigla = ""
-
+        codigo_instituicao = texto.split(")")[0].replace("(", "")
+        nome = texto.split(")")[1].split("-")[0]
+        sigla = texto.split("-")[-1].strip().split(" ")[0].split("\n")[0]
         # Seleciona todos os tbodys da tabela
         tbodys = driver.find_elements(By.CSS_SELECTOR, '#listar-ies-cadastro tbody')
 
@@ -54,7 +58,7 @@ for url in lista_urls:
                 uf = dados[5]
                
                 row = [codigo_instituicao, nome, sigla, codigo_endereco, denominicao, endereco, polo, municipio, uf]
-                print(f"Linha Extraída:\n{dados}")
+                print(f"Linha Extraída:\n{row}")
                 info_enderecos.append(row)
 
     except Exception as e:
