@@ -1,6 +1,7 @@
 package com.mewebstudio.javaspringbootboilerplate.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -61,6 +62,14 @@ public class User extends AbstractBaseEntity {
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
     private Set<Anuncio> anunciosFavoritos = new HashSet<>();
+
+    @ElementCollection(targetClass = InteressesUsuario.class, fetch = FetchType.LAZY)
+    @CollectionTable(name = "user_interesses", joinColumns = @JoinColumn(name = "user_id"))
+    @Enumerated(EnumType.STRING)
+    @Column(name = "interesses", nullable = false)
+    @Size(max = 5, message = "{max_list_size}")
+    @Builder.Default
+    private Set<InteressesUsuario> interesses = new HashSet<>();
 
     @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.DETACH)
     @JoinTable(name = "user_roles",
