@@ -8,6 +8,7 @@ import com.mewebstudio.javaspringbootboilerplate.dto.request.user.CreateUserRequ
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePasswordRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateProfileRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateUserRequest;
+import com.mewebstudio.javaspringbootboilerplate.entity.InteressesUsuario;
 import com.mewebstudio.javaspringbootboilerplate.entity.TipoUsuario;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
 import com.mewebstudio.javaspringbootboilerplate.entity.specification.UserFilterSpecification;
@@ -530,6 +531,16 @@ public class UserService {
         // Atualizar regiaoDeInteresse
         if (request.getRegiaoDeInteresse() != null && !Objects.equals(user.getRegiaoDeInteresse(), request.getRegiaoDeInteresse())) {
             user.setRegiaoDeInteresse(request.getRegiaoDeInteresse());
+        }
+
+        // Atualizar os interesses do usuário
+        if (request.getInteresses() != null) {
+            user.setInteresses(
+                request.getInteresses().stream()
+                    .map(String::toUpperCase)
+                    .map(InteressesUsuario::valueOf)
+                    .collect(Collectors.toSet())
+            );
         }
 
         if (bindingResult.hasErrors()) {
