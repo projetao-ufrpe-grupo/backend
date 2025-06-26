@@ -1,6 +1,9 @@
 package com.mewebstudio.javaspringbootboilerplate.dto.request.user;
 
+import java.util.List;
+
 import com.mewebstudio.javaspringbootboilerplate.dto.annotation.ValueOfEnum;
+import com.mewebstudio.javaspringbootboilerplate.entity.InteressesUsuario;
 import com.mewebstudio.javaspringbootboilerplate.entity.TipoUsuario;
 import com.mewebstudio.javaspringbootboilerplate.util.Constants;
 
@@ -50,4 +53,11 @@ public class UpdateProfileRequest extends AbstractBaseUpdateUserRequest {
     @Schema(description = "Region of interest for the user", type = "String", example = "Pampulha, Belo Horizonte - MG", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @Size(max = 255, message = "{max_length}")
     private String regiaoDeInteresse;
+
+    @Schema(description = "List of user's interest tags (max 5).",
+            type = "List<String>",
+            example = "[\"JOGOS\", \"CINEMA\", \"TECNOLOGIA\"]",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @Size(max = 5, message = "{max_list_size}")
+    private List<@ValueOfEnum(enumClass = InteressesUsuario.class) String> interesses;
 }
