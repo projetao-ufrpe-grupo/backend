@@ -1,0 +1,120 @@
+package com.mewebstudio.javaspringbootboilerplate.dto.response;
+
+import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
+import com.mewebstudio.javaspringbootboilerplate.entity.Caracteristica;
+import com.mewebstudio.javaspringbootboilerplate.entity.Foto;
+import com.mewebstudio.javaspringbootboilerplate.entity.Imovel;
+import com.mewebstudio.javaspringbootboilerplate.entity.User;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Getter
+@Setter
+@Builder
+public class AnuncioResponse {
+
+    // --- Dados do Anúncio ---
+    @Schema(description = "Valor do aluguel mensal", example = "1500.00")
+    private Double aluguel;
+
+    @Schema(description = "Valor do condomínio", example = "350.00")
+    private Double condominio;
+
+    @Schema(description = "Valor do caução", example = "3000.00")
+    private Double caucao;
+
+    @Schema(description = "Duração mínima do contrato em meses", example = "12")
+    private Integer duracaoMinimaContrato;
+
+    @Schema(description = "Indica se o anúncio está pausado", example = "false")
+    private boolean pausado;
+
+    // --- Dados do Imóvel (achatados na resposta) ---
+    @Schema(description = "Descrição detalhada do imóvel", example = "Apartamento arejado com vista para o parque.")
+    private String descricao;
+
+    @Schema(description = "Tipo do imóvel", example = "APARTAMENTO")
+    private String tipo;
+
+    @Schema(description = "Quantidade de quartos", example = "2")
+    private Integer qtdQuartos;
+
+    @Schema(description = "Quantidade de banheiros", example = "1")
+    private Integer qtdBanheiros;
+
+    @Schema(description = "Endereço completo formatado")
+    private String enderecoCompleto;
+
+    @Schema(description = "Lista de características do imóvel", example = "[\"MOBILIADO\", \"PERMITE_ANIMAIS\"]")
+    private List<String> caracteristicas;
+
+    @Schema(description = "Lista de fotos do imóvel em formato Base64")
+    private List<String> fotosBase64;
+
+    // --- Dados do Anunciante ---
+    @Schema(description = "Informações do anunciante")
+    private AnuncianteResponse anunciante;
+
+    /**
+     * DTO aninhado para informações do anunciante.
+     */
+    @Getter
+    @Setter
+    @Builder
+    public static class AnuncianteResponse {
+        private UUID id;
+        private String name;
+        private String lastName;
+        private String fotoPerfilBase64;
+    }
+
+    /**
+     * Converte uma entidade Anuncio para um AnuncioResponse.
+     * @param anuncio A entidade a ser convertida.
+     * @return O DTO de resposta.
+     */
+    public static AnuncioResponse convert(Anuncio anuncio) {
+        if (anuncio == null) {
+            return null;
+        }
+
+        Imovel imovel = anuncio.getImovel();
+        User anunciante = anuncio.getAnunciante();
+
+        return AnuncioResponse.builder()
+            // Campos do Anuncio
+            .aluguel(anuncio.getAluguel())
+            .condominio(anuncio.getCondominio())
+            .caucao(anuncio.getCaucao())
+            .duracaoMinimaContrato(anuncio.getDuracaoMinimaContrato())
+            .pausado(anuncio.isPausado())
+
+            // Campos do Imovel
+            .descricao(imovel.getDescricao())
+            .tipo(imovel.getTipo().name())
+            .qtdQuartos(imovel.getQtdQuartos())
+            .qtdBanheiros(imovel.getQtdBanheiros())
+            .enderecoCompleto(String.format("%s, %s - %s, %s", imovel.getLogradouro(), imovel.getNumero(), imovel.getBairro(), imovel.getCidade()))
+            .caracteristicas(imovel.getCaracteristicas().stream()
+                .map(Caracteristica::name)
+                .collect(Collectors.toList()))
+            .fotosBase64(imovel.getFotos().stream()
+                .map(Foto::getDadosBase64)
+                .collect(Collectors.toList()))
+
+            // Campos do Anunciante
+            .anunciante(AnuncianteResponse.builder()
+                .id(anunciante.getId())
+                .name(anunciante.getName())
+                .lastName(anunciante.getLastName())
+                .fotoPerfilBase64(anunciante.getFotoPerfil())
+                .build())
+            .build();
+    }
+}
