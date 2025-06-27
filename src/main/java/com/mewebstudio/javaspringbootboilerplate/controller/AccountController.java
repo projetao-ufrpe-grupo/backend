@@ -1,6 +1,7 @@
 package com.mewebstudio.javaspringbootboilerplate.controller;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePasswordRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.response.AnuncioResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.DetailedErrorResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.ErrorResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.SuccessResponse;
@@ -33,8 +34,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import static com.mewebstudio.javaspringbootboilerplate.util.Constants.SECURITY_SCHEME_NAME;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.io.IOException;
 
 @RestController
@@ -219,7 +222,6 @@ public class AccountController extends AbstractBaseController {
             .build());
     }
 
-    /*
     @GetMapping("/favoritos")
     @Operation(
         summary = "Get favorite announcements",
@@ -241,7 +243,6 @@ public class AccountController extends AbstractBaseController {
             .collect(Collectors.toList());
         return ResponseEntity.ok(favoritos);
     }
-     */
 
     @PostMapping("/favoritar/{anuncioId}")
     @Operation(
