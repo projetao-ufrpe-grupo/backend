@@ -24,11 +24,18 @@ import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import static com.mewebstudio.javaspringbootboilerplate.util.Constants.SECURITY_SCHEME_NAME;
+
+import java.util.Map;
+import java.util.UUID;
+import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -115,6 +122,22 @@ public class AccountController extends AbstractBaseController {
         return ResponseEntity.ok(UserResponse.convert(updatedUser));
     }
 
+    @PostMapping(value = "/profile/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+        summary = "Update user profile photo",
+        description = "Uploads and updates the profile photo for the authenticated user.",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME)
+    )
+    public ResponseEntity<SuccessResponse> updateProfilePhoto(
+        @Parameter(description = "Image file to be uploaded", required = true)
+        @RequestParam("file") MultipartFile file
+    ) throws IOException {
+        userService.updateProfilePhoto(file);
+        return ResponseEntity.ok(SuccessResponse.builder()
+            .message(messageSourceService.get("profile_photo_updated"))
+            .build());
+    }
+
     @PostMapping("/password")
     @Operation(
         summary = "Password update endpoint",
@@ -195,4 +218,57 @@ public class AccountController extends AbstractBaseController {
             .message(messageSourceService.get("verification_email_sent"))
             .build());
     }
+
+    /*
+    @GetMapping("/favoritos")
+    @Operation(
+        summary = "Get favorite announcements",
+        description = "Returns a list of announcements favorited by the user.",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME),
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successful operation. Returns a list of announcements.",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = AnuncioResponse.class))
+            )
+        }
+    )
+    public ResponseEntity<List<AnuncioResponse>> getAnunciosFavoritos() {
+        List<AnuncioResponse> favoritos = userService.getAnunciosFavoritos()
+            .stream()
+            .map(AnuncioResponse::convert)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(favoritos);
+    }
+     */
+
+    @PostMapping("/favoritar/{anuncioId}")
+    @Operation(
+        summary = "Toggle favorite announcement",
+        description = "Adds or removes an announcement from the user's favorites list.",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME),
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successful operation. Returns the current favorite status.",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(type = "object", example = "{\"favorited\": true}"))
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Announcement not found",
+                content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class))
+            )
+        }
+    )
+    public ResponseEntity<Map<String, Boolean>> marcarFavorito(
+        @Parameter(description = "ID of the announcement to favorite/unfavorite", required = true)
+        @PathVariable UUID anuncioId
+    ) {
+        boolean isFavorited = userService.alternarAnuncioFavorito(anuncioId);
+        return ResponseEntity.ok(Map.of("favorited", isFavorited));
+    }
+
 }
