@@ -8,6 +8,7 @@ import com.mewebstudio.javaspringbootboilerplate.dto.request.user.CreateUserRequ
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePasswordRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateProfileRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateUserRequest;
+import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
 import com.mewebstudio.javaspringbootboilerplate.entity.InteressesUsuario;
 import com.mewebstudio.javaspringbootboilerplate.entity.TipoUsuario;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
@@ -18,6 +19,7 @@ import com.mewebstudio.javaspringbootboilerplate.event.UserEmailVerificationSend
 import com.mewebstudio.javaspringbootboilerplate.event.UserPasswordResetSendEvent;
 import com.mewebstudio.javaspringbootboilerplate.exception.BadRequestException;
 import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
+import com.mewebstudio.javaspringbootboilerplate.repository.AnuncioRepository;
 import com.mewebstudio.javaspringbootboilerplate.repository.UserRepository;
 import com.mewebstudio.javaspringbootboilerplate.security.JwtUserDetails;
 import com.mewebstudio.javaspringbootboilerplate.util.Constants;
@@ -39,10 +41,15 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindException;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Base64;
 import java.util.Objects;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -52,6 +59,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserService {
     private final UserRepository userRepository;
+
+    private final AnuncioRepository anuncioRepository;
 
     private final PasswordEncoder passwordEncoder;
 
@@ -518,11 +527,6 @@ public class UserService {
             user.setBiografia(request.getBiografia());
         }
 
-        // Atualizar caminhoFoto
-        if (request.getCaminhoFoto() != null && !Objects.equals(user.getCaminhoFoto(), request.getCaminhoFoto())) {
-            user.setCaminhoFoto(request.getCaminhoFoto());
-        }
-
         // Atualizar curso
         if (request.getCurso() != null && !Objects.equals(user.getCurso(), request.getCurso())) {
             user.setCurso(request.getCurso());
@@ -562,6 +566,65 @@ public class UserService {
         return updatedUser;
     }
 
+    /**
+     * Updates the profile photo for the current user.
+     * @param file The image file to upload.
+     * @throws IOException if an I/O error occurs.
+     */
+    public void updateProfilePhoto(MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new BadRequestException("File is empty or not provided.");
+        }
+        if (!Objects.requireNonNull(file.getContentType()).startsWith("image/")) {
+            throw new BadRequestException("Invalid file type. Only images are allowed.");
+        }
+
+        User user = getUser();
+        String base64Image = Base64.getEncoder().encodeToString(file.getBytes());
+        user.setFotoPerfil(base64Image);
+        userRepository.save(user);
+        log.info("Profile photo updated for user [{}]", user.getId());
+    }
+
+    /**
+     * Favorites or unfavorites an announcement for the current user.
+     *
+     * @param anuncioId The ID of the announcement to toggle.
+     * @return true if the announcement is now a favorite, false otherwise.
+     */
+    public boolean alternarAnuncioFavorito(UUID anuncioId) {
+        User usuario = getUser();
+        Anuncio anuncio = anuncioRepository.findById(anuncioId)
+            .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
+                new String[]{"Anúncio"})));
+
+        boolean favoritado;
+        if (usuario.getAnunciosFavoritos().contains(anuncio)) {
+            // Se já for favorito, remove
+            usuario.getAnunciosFavoritos().remove(anuncio);
+            favoritado = false;
+            log.info("User [{}] unfavorited announcement [{}]", usuario.getId(), anuncioId);
+        } else {
+            // Se não for favorito, adiciona
+            usuario.getAnunciosFavoritos().add(anuncio);
+            favoritado = true;
+            log.info("User [{}] favorited announcement [{}]", usuario.getId(), anuncioId);
+        }
+
+        userRepository.save(usuario);
+        return favoritado;
+    }
+
+    /**
+     * Gets the list of favorited announcements for the current user.
+     *
+     * @return A set of favorited Anuncio entities.
+     */
+    public Set<Anuncio> getAnunciosFavoritos() {
+        User usuario = getUser();
+        log.info("Fetching favorite announcements for user [{}]", usuario.getId());
+        return usuario.getAnunciosFavoritos();
+    }
 
     /**
      * E-mail verification event publisher.

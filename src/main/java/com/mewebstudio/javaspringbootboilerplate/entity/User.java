@@ -51,7 +51,10 @@ public class User extends AbstractBaseEntity {
     //TODO: implementar validação de CPF e implementar restrição de banco (unique e nullable = false)
     private String cpf;
 
-    private String caminhoFoto;
+    @Lob
+    @Column(name = "foto_perfil")
+    private String fotoPerfil;
+    
     private String curso;
 
     // Deve seguir esse padrão: Pampulha, Belo Horizonte - MG / <BAIRRO>, <CIDADE> - <ESTADO>

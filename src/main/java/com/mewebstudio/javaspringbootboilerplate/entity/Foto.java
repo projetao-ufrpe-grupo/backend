@@ -1,8 +1,10 @@
 package com.mewebstudio.javaspringbootboilerplate.entity;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
 import jakarta.persistence.ManyToOne;
 import lombok.*;
 
@@ -14,7 +16,9 @@ import lombok.*;
 @AllArgsConstructor
 public class Foto extends AbstractBaseEntity {
 
-    private String url;
+    @Lob
+    @Column(name = "dados_base64")
+    private String dadosBase64;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "imovel_id")

@@ -42,10 +42,6 @@ public class UpdateProfileRequest extends AbstractBaseUpdateUserRequest {
     @Size(max = 500, message = "{max_length}")
     private String biografia;
 
-    @Schema(description = "Profile photo path/URL of the user", type = "String", example = "/path/to/profile_photo.jpg", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @Size(max = 255, message = "{max_length}")
-    private String caminhoFoto;
-
     @Schema(description = "Course of the student user", type = "String", example = "Ciência da Computação", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     @Size(max = 100, message = "{max_length}")
     private String curso;
