@@ -21,8 +21,6 @@ import java.io.UnsupportedEncodingException;
 public class MailSenderService {
     private static final String NAME = "name";
 
-    private static final String LAST_NAME = "lastName";
-
     private static final String URL = "url";
 
     private final String appName;
