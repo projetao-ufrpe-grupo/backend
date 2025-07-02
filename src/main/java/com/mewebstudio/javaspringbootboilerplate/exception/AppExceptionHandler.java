@@ -100,6 +100,12 @@ public class AppExceptionHandler {
         return build(HttpStatus.NOT_FOUND, e.getMessage());
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public final ResponseEntity<ErrorResponse> handleForbiddenException(final ForbiddenException e) {
+        log.error(e.toString(), e.getMessage());
+        return build(HttpStatus.FORBIDDEN, e.getMessage());
+    }
+
     @ExceptionHandler({
         InternalAuthenticationServiceException.class,
         BadCredentialsException.class,

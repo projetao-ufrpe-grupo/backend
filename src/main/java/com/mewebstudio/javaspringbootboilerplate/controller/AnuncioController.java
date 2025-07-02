@@ -7,6 +7,7 @@ import com.mewebstudio.javaspringbootboilerplate.service.AnuncioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -18,6 +19,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
+
+import java.util.Map;
+import java.util.UUID;
 
 import static com.mewebstudio.javaspringbootboilerplate.util.Constants.SECURITY_SCHEME_NAME;
 
@@ -50,4 +54,33 @@ public class AnuncioController {
 
         return ResponseEntity.created(location).body(AnuncioResponse.convert(createdAnuncio));
     }
+
+    @GetMapping("/{id}")
+    @Operation(
+        summary = "Get announcement details by ID",
+        description = "Returns the full details of a specific announcement."
+    )
+    public ResponseEntity<AnuncioResponse> getAnuncioById(
+        @Parameter(description = "ID of the announcement to retrieve", required = true)
+        @PathVariable("id") UUID anuncioId
+    ) {
+        Anuncio anuncio = anuncioService.findById(anuncioId);
+        return ResponseEntity.ok(AnuncioResponse.convert(anuncio));
+    }
+
+    @PatchMapping("/{id}/toggle-pause")
+    @Operation(
+        summary = "Pause or unpause an announcement",
+        description = "Toggles the 'paused' status of an announcement. Only the owner can perform this action.",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME)
+    )
+    public ResponseEntity<Map<String, Boolean>> togglePauseStatus(
+        @Parameter(description = "ID of the announcement to toggle", required = true)
+        @PathVariable("id") UUID anuncioId
+    ) {
+        boolean isPaused = anuncioService.togglePauseStatus(anuncioId);
+        return ResponseEntity.ok(Map.of("paused", isPaused));
+    }
+
+
 }

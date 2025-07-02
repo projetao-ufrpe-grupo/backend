@@ -4,6 +4,7 @@ import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.CreateAnunc
 import com.mewebstudio.javaspringbootboilerplate.entity.*;
 import com.mewebstudio.javaspringbootboilerplate.repository.AnuncioRepository;
 import com.mewebstudio.javaspringbootboilerplate.repository.ImovelRepository;
+import com.mewebstudio.javaspringbootboilerplate.exception.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,9 +15,12 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AnuncioService {
 
     private final ImovelRepository imovelRepository;
@@ -49,6 +53,8 @@ public class AnuncioService {
             .tipo(TipoImovel.valueOf(request.getTipo().toUpperCase()))
             .qtdQuartos(request.getQtdQuartos())
             .qtdBanheiros(request.getQtdBanheiros())
+            .area(request.getArea())
+            .dataDisponibilidade(request.getDataDisponibilidade())
             .cep(request.getCep())
             .cidade(request.getCidade())
             .estado(Estado.valueOf(request.getEstado().toUpperCase()))
@@ -80,5 +86,50 @@ public class AnuncioService {
         }
 
         return imovel;
+    }
+
+    /**
+     * Busca um anúncio pelo seu ID.
+     *
+     * @param id O UUID do anúncio.
+     * @return A entidade Anuncio encontrada.
+     * @throws NotFoundException se nenhum anúncio for encontrado com o ID fornecido.
+     */
+    public Anuncio findById(UUID id) {
+        return anuncioRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + id));
+    }
+
+    /**
+     * Alterna o status de 'pausado' de um anúncio.
+     * Apenas o proprietário do anúncio pode realizar esta ação.
+     *
+     * @param anuncioId O ID do anúncio a ser pausado/despausado.
+     * @return O novo estado de 'pausado' (true se pausado, false se ativo).
+     * @throws NotFoundException se o anúncio não for encontrado.
+     * @throws ForbiddenException se o usuário atual não for o proprietário do anúncio.
+     */
+    @Transactional
+    public boolean togglePauseStatus(UUID anuncioId) {
+        // 1. Obter o usuário autenticado
+        User currentUser = userService.getUser();
+
+        // 2. Encontrar o anúncio ou lançar exceção
+        Anuncio anuncio = anuncioRepository.findById(anuncioId)
+            .orElseThrow(() -> new NotFoundException("Anúncio não encontrado."));
+
+        // 3. Verificação de autorização
+        if (!anuncio.getAnunciante().getId().equals(currentUser.getId())) {
+        throw new ForbiddenException("Você não tem permissão para modificar este anúncio.");
+        }
+
+        // 4. Alternar o status e salvar
+        boolean novoStatus = !anuncio.isPausado();
+        anuncio.setPausado(novoStatus);
+        anuncioRepository.save(anuncio);
+
+        log.info("Anúncio [{}] teve seu status alterado para: {}", anuncioId, novoStatus ? "PAUSADO" : "ATIVO");
+
+        return novoStatus;
     }
 }

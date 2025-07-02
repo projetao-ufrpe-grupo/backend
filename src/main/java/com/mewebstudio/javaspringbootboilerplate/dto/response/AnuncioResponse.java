@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -20,6 +21,9 @@ import java.util.stream.Collectors;
 public class AnuncioResponse {
 
     // --- Dados do Anúncio ---
+    @Schema(description = "ID único do anúncio", example = "123e4567-e89b-12d3-a456-426614174000")
+    private UUID id;
+
     @Schema(description = "Valor do aluguel mensal", example = "1500.00")
     private Double aluguel;
 
@@ -47,6 +51,12 @@ public class AnuncioResponse {
 
     @Schema(description = "Quantidade de banheiros", example = "1")
     private Integer qtdBanheiros;
+
+    @Schema(description = "Área do imóvel em m²", example = "55")
+    private Integer area;
+
+    @Schema(description = "Data de disponibilidade do imóvel", example = "2025-08-01")
+    private LocalDate dataDisponibilidade;
 
     @Schema(description = "Endereço completo formatado")
     private String enderecoCompleto;
@@ -89,6 +99,7 @@ public class AnuncioResponse {
 
         return AnuncioResponse.builder()
             // Campos do Anuncio
+            .id(anuncio.getId())
             .aluguel(anuncio.getAluguel())
             .condominio(anuncio.getCondominio())
             .caucao(anuncio.getCaucao())
@@ -100,6 +111,8 @@ public class AnuncioResponse {
             .tipo(imovel.getTipo().name())
             .qtdQuartos(imovel.getQtdQuartos())
             .qtdBanheiros(imovel.getQtdBanheiros())
+            .area(imovel.getArea())
+            .dataDisponibilidade(imovel.getDataDisponibilidade())
             .enderecoCompleto(String.format("%s, %s - %s, %s", imovel.getLogradouro(), imovel.getNumero(), imovel.getBairro(), imovel.getCidade()))
             .caracteristicas(imovel.getCaracteristicas().stream()
                 .map(Caracteristica::name)
