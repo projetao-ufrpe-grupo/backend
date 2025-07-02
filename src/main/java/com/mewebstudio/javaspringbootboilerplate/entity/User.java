@@ -19,7 +19,6 @@ import java.util.Set;
     @UniqueConstraint(columnNames = {"email"}, name = "uk_users_email")
 }, indexes = {
     @Index(columnList = "name", name = "idx_users_name"),
-    @Index(columnList = "last_name", name = "idx_users_last_name")
 })
 @Getter
 @Setter
@@ -35,9 +34,6 @@ public class User extends AbstractBaseEntity {
 
     @Column(name = "name", nullable = false, length = 50)
     private String name;
-
-    @Column(name = "last_name", nullable = false, length = 50)
-    private String lastName;
 
     @Column(name = "avatar", columnDefinition = "text")
     private String avatar;
@@ -120,6 +116,6 @@ public class User extends AbstractBaseEntity {
      * @return String
      */
     public String getFullName() {
-        return this.lastName + " " + this.name;
+        return this.name;
     }
 }

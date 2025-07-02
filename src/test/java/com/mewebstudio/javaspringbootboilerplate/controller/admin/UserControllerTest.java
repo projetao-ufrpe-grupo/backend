@@ -90,7 +90,6 @@ class UserControllerTest {
             assertEquals(user.getId().toString(), response.getBody().getItems().get(0).getId());
             assertEquals(user.getEmail(), response.getBody().getItems().get(0).getEmail());
             assertEquals(user.getName(), response.getBody().getItems().get(0).getName());
-            assertEquals(user.getLastName(), response.getBody().getItems().get(0).getLastName());
         }
 
         @Test

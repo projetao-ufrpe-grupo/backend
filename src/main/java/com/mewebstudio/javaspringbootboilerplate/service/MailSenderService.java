@@ -21,8 +21,6 @@ import java.io.UnsupportedEncodingException;
 public class MailSenderService {
     private static final String NAME = "name";
 
-    private static final String LAST_NAME = "lastName";
-
     private static final String URL = "url";
 
     private final String appName;
@@ -83,7 +81,6 @@ public class MailSenderService {
 
             final Context ctx = createContext();
             ctx.setVariable(NAME, user.getName());
-            ctx.setVariable(LAST_NAME, user.getLastName());
             ctx.setVariable("fullName", user.getFullName());
             ctx.setVariable(URL, url);
 
@@ -113,7 +110,6 @@ public class MailSenderService {
 
             final Context ctx = createContext();
             ctx.setVariable(NAME, user.getName());
-            ctx.setVariable(LAST_NAME, user.getLastName());
             ctx.setVariable("fullName", user.getFullName());
             ctx.setVariable(URL, url);
 

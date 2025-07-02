@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Positive;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Getter
@@ -35,6 +36,10 @@ public class CreateAnuncioRequest {
     private Integer duracaoMinimaContrato;
 
     // --- Dados do Imóvel ---
+    @Schema(description = "Área do imóvel em metros quadrados", example = "55")
+    @Positive(message = "{positive}")
+    private Integer area;
+
     @Schema(description = "Descrição detalhada do imóvel", example = "Apartamento arejado com vista para o parque.", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotBlank(message = "{not_blank}")
     private String descricao;
@@ -43,6 +48,9 @@ public class CreateAnuncioRequest {
     @NotNull(message = "{not_null}")
     @ValueOfEnum(enumClass = TipoImovel.class)
     private String tipo;
+
+    @Schema(description = "Data a partir da qual o imóvel está disponível (formato YYYY-MM-DD)", example = "2025-08-01")
+    private LocalDate dataDisponibilidade;
 
     @Schema(description = "Quantidade de quartos", example = "2", requiredMode = Schema.RequiredMode.REQUIRED)
     @NotNull(message = "{not_null}")

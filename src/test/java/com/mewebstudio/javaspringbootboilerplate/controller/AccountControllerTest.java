@@ -54,7 +54,6 @@ class AccountControllerTest {
         assertEquals(user.getId().toString(), response.getBody().getId());
         assertEquals(user.getEmail(), response.getBody().getEmail());
         assertEquals(user.getName(), response.getBody().getName());
-        assertEquals(user.getLastName(), response.getBody().getLastName());
     }
 
     @Test
