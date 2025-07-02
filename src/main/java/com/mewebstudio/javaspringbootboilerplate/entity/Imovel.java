@@ -41,7 +41,4 @@ public class Imovel extends AbstractBaseEntity {
     @Column(name = "tag")
     private List<Caracteristica> caracteristicas = new ArrayList<>();
 
-    @OneToMany(fetch = FetchType.LAZY, cascade = CascadeType.ALL) // Ver por que tem esse campo
-    private List<TagImovel> tagImovel = new ArrayList<>();
-
 }
