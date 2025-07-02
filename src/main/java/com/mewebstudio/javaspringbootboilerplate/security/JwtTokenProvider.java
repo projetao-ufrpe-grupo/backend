@@ -80,7 +80,6 @@ public class JwtTokenProvider {
             .setExpiration(getExpireDate(expires))
             .signWith(getSigningKey(), SignatureAlgorithm.HS256)
             .compact();
-        log.trace("Token is added to the local cache for userID: {}, ttl: {}", id, expires);
 
         return token;
     }
@@ -159,11 +158,9 @@ public class JwtTokenProvider {
      */
     public boolean validateToken(final String token, final boolean isHttp) {
         try {
-            log.info("Iniciando validação do token");
             parseToken(token);
             try {
                 JwtToken jwtToken = jwtTokenService.findByTokenOrRefreshToken(token);
-                log.info("Token encontrado no banco de dados");
                 
                 if (isHttp && !httpServletRequest.getHeader("User-Agent").equals(jwtToken.getUserAgent())) {
                     log.error("[JWT] User-Agent não corresponde. Esperado: {}, Recebido: {}", 
@@ -171,17 +168,13 @@ public class JwtTokenProvider {
                         httpServletRequest.getHeader("User-Agent"));
                     return false;
                 }
-                log.info("User-Agent validado com sucesso");
             } catch (NotFoundException e) {
-                log.error("[JWT] Token não encontrado no banco de dados");
                 return false;
             }
 
             boolean isExpired = isTokenExpired(token);
-            log.info("Token expirado? {}", isExpired);
             return !isExpired;
         } catch (Exception e) {
-            log.error("Erro ao validar token", e);
             return false;
         }
     }
@@ -197,21 +190,16 @@ public class JwtTokenProvider {
         try {
             boolean isTokenValid = validateToken(token);
             if (!isTokenValid) {
-                log.error("[JWT] Token could not found in local cache");
                 httpServletRequest.setAttribute("notfound", "Token is not found in cache");
             }
             return isTokenValid;
         } catch (UnsupportedJwtException e) {
-            log.error("[JWT] Unsupported JWT token!");
             httpServletRequest.setAttribute("unsupported", "Unsupported JWT token!");
         } catch (MalformedJwtException e) {
-            log.error("[JWT] Invalid JWT token!");
             httpServletRequest.setAttribute("invalid", "Invalid JWT token!");
         } catch (ExpiredJwtException e) {
-            log.error("[JWT] Expired JWT token!");
             httpServletRequest.setAttribute("expired", "Expired JWT token!");
         } catch (IllegalArgumentException e) {
-            log.error("[JWT] Jwt claims string is empty");
             httpServletRequest.setAttribute("illegal", "JWT claims string is empty.");
         }
 
@@ -232,13 +220,10 @@ public class JwtTokenProvider {
      * @return String value of bearer token or null
      */
     public String extractJwtFromBearerString(final String bearer) {
-        log.info("Bearer string recebida: {}", bearer);
         if (StringUtils.hasText(bearer) && bearer.startsWith(String.format("%s ", TOKEN_TYPE))) {
             String token = bearer.substring(TOKEN_TYPE.length() + 1);
-            log.info("Token extraído do Bearer: {}", token.substring(0, Math.min(token.length(), 10)) + "...");
             return token;
         }
-        log.warn("Bearer string inválida ou ausente");
         return null;
     }
 
@@ -250,7 +235,6 @@ public class JwtTokenProvider {
      */
     public String extractJwtFromRequest(final HttpServletRequest request) {
         String authHeader = request.getHeader(TOKEN_HEADER);
-        log.info("Header de autorização: {}", authHeader != null ? "presente" : "ausente");
         return extractJwtFromBearerString(authHeader);
     }
 
