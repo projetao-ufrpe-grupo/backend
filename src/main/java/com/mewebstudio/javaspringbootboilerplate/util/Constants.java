@@ -1,9 +1,9 @@
 package com.mewebstudio.javaspringbootboilerplate.util;
 
+import java.util.stream.Stream;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-
-import java.util.stream.Stream;
 
 public final class Constants {
     public static final String SECURITY_SCHEME_NAME = "bearerAuth";
@@ -24,7 +24,9 @@ public final class Constants {
 
     public static final int PASSWORD_MAX_LENGTH = 100;
 
-    public static final String PASSWORD_REGEX = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=!])(?=\\S+$).{8,}$";
+    public static final String EMAIL_REGEX = "^[A-Za-z0-9+_.-]+@(.+)$";
+    public static final String PASSWORD_REGEX = "^.+$";
+    public static final String PHONE_REGEX = "^\\+?[1-9][0-9]{7,14}$";
 
     private Constants() {
     }

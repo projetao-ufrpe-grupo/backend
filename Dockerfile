@@ -11,7 +11,7 @@ RUN mvn -f /app/pom.xml clean package -DskipTests=true \
 # -----------------------------------------------------
 
 # Package stage
-FROM openjdk:21-ea-17-slim-buster AS production
+FROM eclipse-temurin:17-jre-jammy AS production
 
 COPY --from=build /app/app.jar /usr/local/lib/app.jar
 

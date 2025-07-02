@@ -6,11 +6,9 @@
 - Spring Boot 3.1
 - Spring Security
 - Spring Data JPA
-- Spring Data Redis
 - Hibernate
 - JWT Authentication
 - PostgreSQL
-- Redis
 - Liquibase
 - Lombok
 - Swagger
@@ -23,7 +21,6 @@
 - Docker 20.10.8
 - Docker Compose 2.19.1
 - PostgreSQL 13.11
-- Redis 7.0.12
 
 ### Run with Docker Compose
 ```bash
