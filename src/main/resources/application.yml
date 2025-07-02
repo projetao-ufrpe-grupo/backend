@@ -44,16 +44,10 @@ spring:
         globally_quoted_identifiers: true
     open-in-view: false
   datasource:
-    url: jdbc:postgresql://${POSTGRESQL_HOST:localhost}:${POSTGRESQL_PORT:5432}/${POSTGRESQL_DB:app_db}
-    username: ${POSTGRESQL_USER:postgres}
-    password: ${POSTGRESQL_PASSWORD:secret}
+    url: jdbc:postgresql://turntable.proxy.rlwy.net:29190/railway
+    username: postgres
+    password: KQzAkxQucQqXtwpSfUjBomtjDKAuNVHo
   data:
-    redis:
-      database: ${REDIS_DATABASE:0}
-      host: ${REDIS_HOST:localhost}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD:secret}
-      timeout: ${REDIS_TIMEOUT:60000}
     web:
       pageable:
         default-page-size: ${PAGEABLE_DEFAULT_PAGE_SIZE:20}

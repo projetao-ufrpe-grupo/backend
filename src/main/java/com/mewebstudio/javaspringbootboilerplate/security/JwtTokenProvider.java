@@ -1,10 +1,22 @@
 package com.mewebstudio.javaspringbootboilerplate.security;
 
+import static com.mewebstudio.javaspringbootboilerplate.util.Constants.TOKEN_HEADER;
+import static com.mewebstudio.javaspringbootboilerplate.util.Constants.TOKEN_TYPE;
+
+import java.security.Key;
+import java.util.Date;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+
 import com.mewebstudio.javaspringbootboilerplate.entity.JwtToken;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
 import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
 import com.mewebstudio.javaspringbootboilerplate.service.JwtTokenService;
 import com.mewebstudio.javaspringbootboilerplate.service.UserService;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
@@ -16,16 +28,6 @@ import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
-
-import java.security.Key;
-import java.util.Date;
-
-import static com.mewebstudio.javaspringbootboilerplate.util.Constants.TOKEN_HEADER;
-import static com.mewebstudio.javaspringbootboilerplate.util.Constants.TOKEN_TYPE;
 
 @Component
 @Slf4j
@@ -156,19 +158,32 @@ public class JwtTokenProvider {
      * @return boolean
      */
     public boolean validateToken(final String token, final boolean isHttp) {
-        parseToken(token);
         try {
-            JwtToken jwtToken = jwtTokenService.findByTokenOrRefreshToken(token);
-            if (isHttp && !httpServletRequest.getHeader("User-agent").equals(jwtToken.getUserAgent())) {
-                log.error("[JWT] User-agent is not matched");
+            log.info("Iniciando validação do token");
+            parseToken(token);
+            try {
+                JwtToken jwtToken = jwtTokenService.findByTokenOrRefreshToken(token);
+                log.info("Token encontrado no banco de dados");
+                
+                if (isHttp && !httpServletRequest.getHeader("User-Agent").equals(jwtToken.getUserAgent())) {
+                    log.error("[JWT] User-Agent não corresponde. Esperado: {}, Recebido: {}", 
+                        jwtToken.getUserAgent(), 
+                        httpServletRequest.getHeader("User-Agent"));
+                    return false;
+                }
+                log.info("User-Agent validado com sucesso");
+            } catch (NotFoundException e) {
+                log.error("[JWT] Token não encontrado no banco de dados");
                 return false;
             }
-        } catch (NotFoundException e) {
-            log.error("[JWT] Token could not found in Redis");
+
+            boolean isExpired = isTokenExpired(token);
+            log.info("Token expirado? {}", isExpired);
+            return !isExpired;
+        } catch (Exception e) {
+            log.error("Erro ao validar token", e);
             return false;
         }
-
-        return !isTokenExpired(token);
     }
 
     /**
@@ -217,10 +232,13 @@ public class JwtTokenProvider {
      * @return String value of bearer token or null
      */
     public String extractJwtFromBearerString(final String bearer) {
+        log.info("Bearer string recebida: {}", bearer);
         if (StringUtils.hasText(bearer) && bearer.startsWith(String.format("%s ", TOKEN_TYPE))) {
-            return bearer.substring(TOKEN_TYPE.length() + 1);
+            String token = bearer.substring(TOKEN_TYPE.length() + 1);
+            log.info("Token extraído do Bearer: {}", token.substring(0, Math.min(token.length(), 10)) + "...");
+            return token;
         }
-
+        log.warn("Bearer string inválida ou ausente");
         return null;
     }
 
@@ -231,7 +249,9 @@ public class JwtTokenProvider {
      * @return String value of bearer token or null
      */
     public String extractJwtFromRequest(final HttpServletRequest request) {
-        return extractJwtFromBearerString(request.getHeader(TOKEN_HEADER));
+        String authHeader = request.getHeader(TOKEN_HEADER);
+        log.info("Header de autorização: {}", authHeader != null ? "presente" : "ausente");
+        return extractJwtFromBearerString(authHeader);
     }
 
     /**
