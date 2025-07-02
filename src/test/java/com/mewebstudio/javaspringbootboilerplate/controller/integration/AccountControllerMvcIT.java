@@ -78,7 +78,6 @@ class AccountControllerMvcIT {
             perform.andExpect(MockMvcResultMatchers.jsonPath("$.id", equalTo(user.getId().toString())));
             perform.andExpect(MockMvcResultMatchers.jsonPath("$.email", equalTo(user.getEmail())));
             perform.andExpect(MockMvcResultMatchers.jsonPath("$.name", equalTo(user.getName())));
-            perform.andExpect(MockMvcResultMatchers.jsonPath("$.lastName", equalTo(user.getLastName())));
         }
 
         @Test

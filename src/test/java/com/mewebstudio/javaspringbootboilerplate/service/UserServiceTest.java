@@ -177,7 +177,6 @@ class UserServiceTest {
             assertEquals(user, results.getContent().get(0));
             assertEquals(user.getEmail(), results.getContent().get(0).getEmail());
             assertEquals(user.getName(), results.getContent().get(0).getName());
-            assertEquals(user.getLastName(), results.getContent().get(0).getLastName());
             assertEquals(user.getRoles(), results.getContent().get(0).getRoles());
         }
     }
@@ -197,7 +196,6 @@ class UserServiceTest {
             assertEquals(user, result);
             assertEquals(user.getEmail(), result.getEmail());
             assertEquals(user.getName(), result.getName());
-            assertEquals(user.getLastName(), result.getLastName());
             assertEquals(user.getRoles(), result.getRoles());
         }
 
@@ -229,7 +227,6 @@ class UserServiceTest {
             assertEquals(user, result);
             assertEquals(user.getEmail(), result.getEmail());
             assertEquals(user.getName(), result.getName());
-            assertEquals(user.getLastName(), result.getLastName());
             assertEquals(user.getRoles(), result.getRoles());
         }
 
@@ -409,7 +406,6 @@ class UserServiceTest {
             request.setIsEmailVerified(false);
             request.setEmail("newEmail");
             request.setName("newName");
-            request.setLastName("newLastName");
             when(userRepository.findById(any(UUID.class))).thenReturn(Optional.of(user));
             when(userRepository.save(any(User.class))).thenReturn(user);
             // When
