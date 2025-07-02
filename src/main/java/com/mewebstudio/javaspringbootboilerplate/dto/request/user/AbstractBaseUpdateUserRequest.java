@@ -24,23 +24,13 @@ public abstract class AbstractBaseUpdateUserRequest {
     )
     private String email;
 
-    @Size(max = 50, message = "{max_length}")
+    @Size(max = 100, message = "{max_length}")
     @Schema(
         name = "name",
-        description = "Name of the user",
+        description = "Full name of the user",
         type = "String",
         requiredMode = Schema.RequiredMode.NOT_REQUIRED,
-        example = "John"
+        example = "Maria Carvalho da Silva"
     )
     private String name;
-
-    @Size(max = 50, message = "{max_length}")
-    @Schema(
-        name = "lastName",
-        description = "Lastname of the user",
-        type = "String",
-        requiredMode = Schema.RequiredMode.NOT_REQUIRED,
-        example = "DOE"
-    )
-    private String lastName;
 }

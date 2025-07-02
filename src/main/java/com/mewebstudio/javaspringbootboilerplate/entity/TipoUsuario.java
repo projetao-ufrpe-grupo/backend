@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public enum TipoUsuario {
 
-    ESTUDANTE("Estudante"), ANUNCIANTE("Anunciante");
+    ESTUDANTE("ESTUDANTE"), ANUNCIANTE("ANUNCIANTE");
 
     private final String descricao;
 

@@ -2,6 +2,9 @@ package com.mewebstudio.javaspringbootboilerplate.dto.request.user;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.annotation.FieldMatch;
 import com.mewebstudio.javaspringbootboilerplate.dto.annotation.Password;
+import com.mewebstudio.javaspringbootboilerplate.dto.annotation.ValueOfEnum;
+import com.mewebstudio.javaspringbootboilerplate.entity.TipoUsuario;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
@@ -51,24 +54,24 @@ public abstract class AbstractBaseCreateUserRequest {
     private String passwordConfirm;
 
     @NotBlank(message = "{not_blank}")
-    @Size(max = 50, message = "{max_length}")
+    @Size(max = 100, message = "{max_length}")
     @Schema(
         name = "name",
-        description = "Name of the user",
+        description = "Full name of the user",
         type = "String",
         requiredMode = Schema.RequiredMode.REQUIRED,
-        example = "John"
+        example = "Maria Carvalho da Silva"
     )
     private String name;
 
     @NotBlank(message = "{not_blank}")
-    @Size(max = 50, message = "{max_length}")
+    @ValueOfEnum(enumClass = TipoUsuario.class, message = "{invalid_enum_value}")
     @Schema(
-        name = "lastName",
-        description = "Lastname of the user",
+        description = "User type",
         type = "String",
-        requiredMode = Schema.RequiredMode.REQUIRED,
-        example = "DOE"
+        allowableValues = {"ESTUDANTE", "ANUNCIANTE"},
+        example = "ESTUDANTE",
+        requiredMode = Schema.RequiredMode.REQUIRED
     )
-    private String lastName;
+    private String tipoUsuario;
 }

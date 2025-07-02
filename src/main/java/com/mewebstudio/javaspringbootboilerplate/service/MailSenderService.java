@@ -83,7 +83,6 @@ public class MailSenderService {
 
             final Context ctx = createContext();
             ctx.setVariable(NAME, user.getName());
-            ctx.setVariable(LAST_NAME, user.getLastName());
             ctx.setVariable("fullName", user.getFullName());
             ctx.setVariable(URL, url);
 
@@ -113,7 +112,6 @@ public class MailSenderService {
 
             final Context ctx = createContext();
             ctx.setVariable(NAME, user.getName());
-            ctx.setVariable(LAST_NAME, user.getLastName());
             ctx.setVariable("fullName", user.getFullName());
             ctx.setVariable(URL, url);
 

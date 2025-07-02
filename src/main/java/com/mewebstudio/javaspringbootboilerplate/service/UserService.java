@@ -256,7 +256,6 @@ public class UserService {
         User user = findById(id);
         user.setEmail(request.getEmail());
         user.setName(request.getName());
-        user.setLastName(request.getLastName());
 
         if (StringUtils.hasText(request.getPassword())) {
             user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -409,12 +408,16 @@ public class UserService {
             throw new BindException(bindingResult);
         }
 
-        return User.builder()
+        User.UserBuilder userBuilder = User.builder()
             .email(request.getEmail())
             .password(passwordEncoder.encode(request.getPassword()))
-            .name(request.getName())
-            .lastName(request.getLastName())
-            .build();
+            .name(request.getName()); 
+
+        if (StringUtils.hasText(request.getTipoUsuario())) {
+            userBuilder.tipoUsuario(TipoUsuario.valueOf(request.getTipoUsuario()));
+        }
+
+        return userBuilder.build();
     }
 
     /**
@@ -443,9 +446,6 @@ public class UserService {
             user.setName(request.getName());
         }
 
-        if (StringUtils.hasText(request.getLastName()) && !request.getLastName().equals(user.getLastName())) {
-            user.setLastName(request.getLastName());
-        }
 
         if (bindingResult.hasErrors()) {
             throw new BindException(bindingResult);
@@ -477,11 +477,6 @@ public class UserService {
         // Atualizar nome (herdado de AbstractBaseUpdateUserRequest)
         if (StringUtils.hasText(request.getName()) && !Objects.equals(user.getName(), request.getName())) {
             user.setName(request.getName());
-        }
-
-        // Atualizar sobrenome (herdado de AbstractBaseUpdateUserRequest)
-        if (StringUtils.hasText(request.getLastName()) && !Objects.equals(user.getLastName(), request.getLastName())) {
-            user.setLastName(request.getLastName());
         }
 
         // Atualizar e-mail (herdado de AbstractBaseUpdateUserRequest)

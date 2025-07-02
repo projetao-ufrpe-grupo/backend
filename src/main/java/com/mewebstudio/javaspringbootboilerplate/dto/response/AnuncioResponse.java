@@ -61,7 +61,7 @@ public class AnuncioResponse {
     @Schema(description = "Endereço completo formatado")
     private String enderecoCompleto;
 
-    @Schema(description = "Lista de características do imóvel", example = "[\"MOBILIADO\", \"PERMITE_ANIMAIS\"]")
+    @Schema(description = "Lista de características do imóvel", example = "[\"MOBILIADO\", \"ACEITA_PETS\"]")
     private List<String> caracteristicas;
 
     @Schema(description = "Lista de fotos do imóvel em formato Base64")
@@ -125,7 +125,6 @@ public class AnuncioResponse {
             .anunciante(AnuncianteResponse.builder()
                 .id(anunciante.getId())
                 .name(anunciante.getName())
-                .lastName(anunciante.getLastName())
                 .fotoPerfilBase64(anunciante.getFotoPerfil())
                 .build())
             .build();

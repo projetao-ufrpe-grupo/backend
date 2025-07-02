@@ -2,6 +2,7 @@ package com.mewebstudio.javaspringbootboilerplate.service;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.CreateUserRequest;
 import com.mewebstudio.javaspringbootboilerplate.entity.Role;
+import com.mewebstudio.javaspringbootboilerplate.entity.TipoUsuario;
 import com.mewebstudio.javaspringbootboilerplate.util.Constants;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,8 +61,8 @@ public class DummyDataService implements CommandLineRunner {
         userService.create(CreateUserRequest.builder()
             .email("admin@example.com")
             .password(defaultPassword)
-            .name("John")
-            .lastName("DOE")
+            .name("John Doe")
+            .tipoUsuario(TipoUsuario.ANUNCIANTE.name())
             .roles(roleList)
             .isEmailVerified(true)
             .isBlocked(false)
@@ -70,8 +71,8 @@ public class DummyDataService implements CommandLineRunner {
         userService.create(CreateUserRequest.builder()
             .email("user@example.com")
             .password(defaultPassword)
-            .name("Jane")
-            .lastName("DOE")
+            .name("Jane Smith")
+            .tipoUsuario(TipoUsuario.ESTUDANTE.name())
             .roles(List.of(roleList.get(1)))
             .isEmailVerified(true)
             .isBlocked(false)
