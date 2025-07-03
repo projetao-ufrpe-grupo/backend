@@ -82,5 +82,6 @@ public class AnuncioController {
         return ResponseEntity.ok(Map.of("paused", isPaused));
     }
 
+    //Teste do deploy automatico
 
 }
