@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.configurers.HeadersCon
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.http.HttpMethod;
 
 @Configuration
 @EnableWebSecurity
@@ -55,8 +56,10 @@ public class WebSecurityConfig {
                     "/api-docs/**",
                     "/swagger-ui/**",
                     "/webjars/**",
-                    "/ws/**"
+                    "/ws/**",
+                    "/enums/**"
                 ).permitAll()
+                .requestMatchers(HttpMethod.GET, "/anuncios/**").permitAll()
                 .requestMatchers("/admin/**").hasAuthority(Constants.RoleEnum.ADMIN.name())
                 .anyRequest().authenticated()
             )
