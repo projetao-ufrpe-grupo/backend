@@ -90,7 +90,7 @@ public class CreateAnuncioRequest {
     @Schema(description = "Complemento do endereço", example = "Apto 301")
     private String complemento;
 
-    @Schema(description = "Lista de características do imóvel", example = "[\"MOBILIADO\", \"PERMITE_ANIMAIS\"]")
+    @Schema(description = "Lista de características do imóvel", example = "[\"MOBILIADO\", \"ACEITA_PETS\"]")
     private List<@ValueOfEnum(enumClass = Caracteristica.class) String> caracteristicas;
 
 }
