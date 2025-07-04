@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -102,30 +101,6 @@ public class UserResponse extends AbstractBaseResponse {
         )
     private List<String> interesses;
 
-    @Schema(
-        name = "emailVerifiedAt",
-        description = "Date time field of user e-mail verified",
-        type = "LocalDateTime",
-        example = "2022-09-29T22:37:31"
-    )
-    private LocalDateTime emailVerifiedAt;
-
-    @Schema(
-        name = "createdAt",
-        description = "Date time field of user creation",
-        type = "LocalDateTime",
-        example = "2022-09-29T22:37:31"
-    )
-    private LocalDateTime createdAt;
-
-    @Schema(
-        name = "updatedAt",
-        type = "LocalDateTime",
-        description = "Date time field of user update",
-        example = "2022-09-29T22:37:31"
-    )
-    private LocalDateTime updatedAt;
-
     /**
      * Convert User to UserResponse
      * @param user User
@@ -145,9 +120,6 @@ public class UserResponse extends AbstractBaseResponse {
             .regiaoDeInteresse(user.getRegiaoDeInteresse())
             .interesses(user.getInteresses() != null ?
                 user.getInteresses().stream().map(Enum::name).collect(Collectors.toList()) : null)
-            .emailVerifiedAt(user.getEmailVerifiedAt())
-            .createdAt(user.getCreatedAt())
-            .updatedAt(user.getUpdatedAt())
             .build();
     }
 }
