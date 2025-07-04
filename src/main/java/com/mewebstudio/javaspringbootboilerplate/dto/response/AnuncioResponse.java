@@ -97,36 +97,38 @@ public class AnuncioResponse {
         Imovel imovel = anuncio.getImovel();
         User anunciante = anuncio.getAnunciante();
 
-        return AnuncioResponse.builder()
-            // Campos do Anuncio
+        AnuncianteResponse anuncianteResponse = null;
+        if (anunciante != null) {
+            anuncianteResponse = AnuncianteResponse.builder()
+                .id(anunciante.getId())
+                .name(anunciante.getName())
+                .fotoPerfilBase64(anunciante.getFotoPerfil())
+                .build();
+        }
+
+        AnuncioResponseBuilder builder = AnuncioResponse.builder()
             .id(anuncio.getId())
             .aluguel(anuncio.getAluguel())
             .condominio(anuncio.getCondominio())
             .caucao(anuncio.getCaucao())
             .duracaoMinimaContrato(anuncio.getDuracaoMinimaContrato())
             .pausado(anuncio.isPausado())
+            .anunciante(anuncianteResponse);
+        
+        if (imovel != null) {
+            builder.descricao(imovel.getDescricao())
+                .tipo(imovel.getTipo() != null ? imovel.getTipo().name() : null)
+                .qtdQuartos(imovel.getQtdQuartos())
+                .qtdBanheiros(imovel.getQtdBanheiros())
+                .area(imovel.getArea())
+                .dataDisponibilidade(imovel.getDataDisponibilidade())
+                .enderecoCompleto(String.format("%s, %s - %s, %s", imovel.getLogradouro(), imovel.getNumero(), imovel.getBairro(), imovel.getCidade()))
+                .caracteristicas(imovel.getCaracteristicas() != null ?
+                    imovel.getCaracteristicas().stream().map(Enum::name).collect(Collectors.toList()) : null)
+                .fotosBase64(imovel.getFotos() != null ?
+                    imovel.getFotos().stream().map(Foto::getDadosBase64).collect(Collectors.toList()) : null);
+        }
 
-            // Campos do Imovel
-            .descricao(imovel.getDescricao())
-            .tipo(imovel.getTipo().name())
-            .qtdQuartos(imovel.getQtdQuartos())
-            .qtdBanheiros(imovel.getQtdBanheiros())
-            .area(imovel.getArea())
-            .dataDisponibilidade(imovel.getDataDisponibilidade())
-            .enderecoCompleto(String.format("%s, %s - %s, %s", imovel.getLogradouro(), imovel.getNumero(), imovel.getBairro(), imovel.getCidade()))
-            .caracteristicas(imovel.getCaracteristicas().stream()
-                .map(Caracteristica::name)
-                .collect(Collectors.toList()))
-            .fotosBase64(imovel.getFotos().stream()
-                .map(Foto::getDadosBase64)
-                .collect(Collectors.toList()))
-
-            // Campos do Anunciante
-            .anunciante(AnuncianteResponse.builder()
-                .id(anunciante.getId())
-                .name(anunciante.getName())
-                .fotoPerfilBase64(anunciante.getFotoPerfil())
-                .build())
-            .build();
+        return builder.build();
     }
-}
+}    
