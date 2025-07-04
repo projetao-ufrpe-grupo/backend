@@ -1,7 +1,6 @@
 package com.mewebstudio.javaspringbootboilerplate.dto.response;
 
 import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
-import com.mewebstudio.javaspringbootboilerplate.entity.Caracteristica;
 import com.mewebstudio.javaspringbootboilerplate.entity.Foto;
 import com.mewebstudio.javaspringbootboilerplate.entity.Imovel;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
