@@ -14,7 +14,7 @@ spring:
     description: ${APP_DESCRIPTION:Profile de DEV}
   jpa:
     hibernate:
-      ddl-auto: ${DB_DDL_AUTO:create-drop}
+      ddl-auto: ${DB_DDL_AUTO:update}
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect

@@ -89,6 +89,15 @@ public class AnuncioService {
     }
 
     /**
+     * Busca todos os anúncios cadastrados.
+     *
+     * @return Uma lista de todas as entidades Anuncio.
+     */
+    public List<Anuncio> findAll() {
+        return anuncioRepository.findAll();
+    }
+
+    /**
      * Busca um anúncio pelo seu ID.
      *
      * @param id O UUID do anúncio.
