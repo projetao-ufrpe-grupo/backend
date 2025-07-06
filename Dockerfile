@@ -10,6 +10,17 @@ RUN mvn -f /app/pom.xml clean package -DskipTests=true \
 
 # -----------------------------------------------------
 
+# Development stage
+FROM maven:3.8-openjdk-17 AS development
+
+WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+
+CMD ["mvn", "spring-boot:run", "-Dspring-boot.run.jvmArguments='-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005'"]
+
+# -----------------------------------------------------
+
 # Package stage
 FROM eclipse-temurin:17-jre-jammy AS production
 
