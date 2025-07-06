@@ -131,7 +131,7 @@ public class UserService {
      * @return User
      */
     public User findById(UUID id) {
-        return userRepository.findById(id)
+        return userRepository.findByIdWithDetails(id)
             .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
                 new String[]{messageSourceService.get("user")})));
     }
