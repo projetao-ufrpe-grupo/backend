@@ -2,19 +2,29 @@ services:
 
   backend:
     build:
-      target: production
+      target: development
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+      - "5005:5005"
     container_name: backend-projetao
     environment:
       POSTGRESQL_HOST: postgres
       POSTGRESQL_DB: app_db
       POSTGRESQL_USER: postgres
       POSTGRESQL_PASSWORD: secret
+      SPRING_PROFILES_ACTIVE: dev
+    volumes:
+      - ./:/app
+      - maven-repo:/root/.m2
     depends_on:
       postgres:
         condition: service_healthy
+    privileged: true
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
 
   postgres:
     image: postgres:13.11-bullseye
@@ -27,7 +37,6 @@ services:
       start_period: 30s
       timeout: 10s
     environment:
-
       POSTGRES_DB: app_db
       POSTGRES_PASSWORD: secret
       POSTGRES_USER: postgres
@@ -35,3 +44,6 @@ services:
       - "5432:5432"
     volumes:
       - .docker/dbdata:/var/lib/postgresql/data
+
+volumes:
+  maven-repo:

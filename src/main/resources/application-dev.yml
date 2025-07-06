@@ -18,7 +18,7 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        show_sql: false
+        show_sql: true
         format_sql: true
         globally_quoted_identifiers: true
     open-in-view: false
@@ -41,3 +41,25 @@ spring:
             enable: ${MAIL_SSL:false}
           tls:
             enable: ${MAIL_TLS:false}
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java
+    livereload:
+      enabled: true
+
+management:
+  metrics:
+    enable:
+      process.cpu: false
+      system.cpu: false
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      sla:
+        http.server.requests: 10ms, 50ms, 100ms, 200ms, 500ms
+  endpoints:
+    enabled-by-default: false
+  endpoint:
+    health:
+      enabled: false
