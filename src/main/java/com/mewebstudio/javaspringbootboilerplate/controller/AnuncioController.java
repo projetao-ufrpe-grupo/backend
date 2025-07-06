@@ -22,6 +22,7 @@ import java.util.List;
 
 import java.util.Map;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.mewebstudio.javaspringbootboilerplate.util.Constants.SECURITY_SCHEME_NAME;
 
@@ -55,6 +56,18 @@ public class AnuncioController {
         return ResponseEntity.created(location).body(AnuncioResponse.convert(createdAnuncio));
     }
 
+    @GetMapping
+    @Operation(
+        summary = "Get all announcements",
+        description = "Returns a list of all registered announcements."
+    )
+    public ResponseEntity<List<AnuncioResponse>> getAllAnuncios() {
+        List<AnuncioResponse> anuncios = anuncioService.findAll().stream()
+            .map(AnuncioResponse::convert)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(anuncios);
+    }
+
     @GetMapping("/{id}")
     @Operation(
         summary = "Get announcement details by ID",
@@ -81,7 +94,5 @@ public class AnuncioController {
         boolean isPaused = anuncioService.togglePauseStatus(anuncioId);
         return ResponseEntity.ok(Map.of("paused", isPaused));
     }
-
-    //Teste do deploy automatico
 
 }
