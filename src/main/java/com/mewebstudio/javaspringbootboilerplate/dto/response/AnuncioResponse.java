@@ -1,18 +1,20 @@
 package com.mewebstudio.javaspringbootboilerplate.dto.response;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
 import com.mewebstudio.javaspringbootboilerplate.entity.Foto;
 import com.mewebstudio.javaspringbootboilerplate.entity.Imovel;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -123,9 +125,9 @@ public class AnuncioResponse {
                 .dataDisponibilidade(imovel.getDataDisponibilidade())
                 .enderecoCompleto(String.format("%s, %s - %s, %s", imovel.getLogradouro(), imovel.getNumero(), imovel.getBairro(), imovel.getCidade()))
                 .caracteristicas(imovel.getCaracteristicas() != null ?
-                    imovel.getCaracteristicas().stream().map(Enum::name).collect(Collectors.toList()) : null)
+                    new ArrayList<>(imovel.getCaracteristicas().stream().map(Enum::name).collect(Collectors.toList())) : null)
                 .fotosBase64(imovel.getFotos() != null ?
-                    imovel.getFotos().stream().map(Foto::getDadosBase64).collect(Collectors.toList()) : null);
+                    new ArrayList<>(imovel.getFotos().stream().map(Foto::getDadosBase64).collect(Collectors.toList())) : null);
         }
 
         return builder.build();

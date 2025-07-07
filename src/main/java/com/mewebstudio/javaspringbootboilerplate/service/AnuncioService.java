@@ -1,22 +1,32 @@
 package com.mewebstudio.javaspringbootboilerplate.service;
 
-import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.CreateAnuncioRequest;
-import com.mewebstudio.javaspringbootboilerplate.entity.*;
-import com.mewebstudio.javaspringbootboilerplate.repository.AnuncioRepository;
-import com.mewebstudio.javaspringbootboilerplate.repository.ImovelRepository;
-import com.mewebstudio.javaspringbootboilerplate.exception.*;
-import lombok.RequiredArgsConstructor;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.CreateAnuncioRequest;
+import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
+import com.mewebstudio.javaspringbootboilerplate.entity.Caracteristica;
+import com.mewebstudio.javaspringbootboilerplate.entity.Estado;
+import com.mewebstudio.javaspringbootboilerplate.entity.Foto;
+import com.mewebstudio.javaspringbootboilerplate.entity.Imovel;
+import com.mewebstudio.javaspringbootboilerplate.entity.TipoImovel;
+import com.mewebstudio.javaspringbootboilerplate.entity.User;
+import com.mewebstudio.javaspringbootboilerplate.exception.ForbiddenException;
+import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
+import com.mewebstudio.javaspringbootboilerplate.repository.AnuncioRepository;
+import com.mewebstudio.javaspringbootboilerplate.repository.ImovelRepository;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -62,27 +72,27 @@ public class AnuncioService {
             .numero(request.getNumero())
             .bairro(request.getBairro())
             .complemento(request.getComplemento())
-            .fotos(new ArrayList<>())
-            .caracteristicas(new ArrayList<>())
             .build();
 
         // Lógica para converter os arquivos em Base64 e criar as entidades Foto
         if (fotos != null && !fotos.isEmpty()) {
+            Set<Foto> fotoSet = new HashSet<>();
             for (MultipartFile file : fotos) {
                 String base64Data = Base64.getEncoder().encodeToString(file.getBytes());
                 Foto foto = Foto.builder()
                     .dadosBase64(base64Data)
                     .imovel(imovel)
                     .build();
-                imovel.getFotos().add(foto);
+                fotoSet.add(foto);
             }
+            imovel.setFotos(fotoSet);
         }
 
         if (request.getCaracteristicas() != null) {
             imovel.setCaracteristicas(request.getCaracteristicas().stream()
                 .map(String::toUpperCase)
                 .map(Caracteristica::valueOf)
-                .collect(Collectors.toList()));
+                .collect(Collectors.toSet()));
         }
 
         return imovel;
@@ -93,8 +103,9 @@ public class AnuncioService {
      *
      * @return Uma lista de todas as entidades Anuncio.
      */
+    @Transactional(readOnly = true)
     public List<Anuncio> findAll() {
-        return anuncioRepository.findAll();
+        return anuncioRepository.findAllWithImovelAndCaracteristicas();
     }
 
     /**
@@ -104,8 +115,9 @@ public class AnuncioService {
      * @return A entidade Anuncio encontrada.
      * @throws NotFoundException se nenhum anúncio for encontrado com o ID fornecido.
      */
+    @Transactional(readOnly = true)
     public Anuncio findById(UUID id) {
-        return anuncioRepository.findById(id)
+        return anuncioRepository.findByIdWithImovelAndCaracteristicas(id)
             .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + id));
     }
 
