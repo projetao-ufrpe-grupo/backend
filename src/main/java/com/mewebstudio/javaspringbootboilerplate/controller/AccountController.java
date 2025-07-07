@@ -1,15 +1,39 @@
 package com.mewebstudio.javaspringbootboilerplate.controller;
 
+import static com.mewebstudio.javaspringbootboilerplate.util.Constants.SECURITY_SCHEME_NAME;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.validation.BindException;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePasswordRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePrivacyRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateProfileRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.AnuncioResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.DetailedErrorResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.ErrorResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.SuccessResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.user.UserResponse;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateProfileRequest;
+import com.mewebstudio.javaspringbootboilerplate.entity.User;
 import com.mewebstudio.javaspringbootboilerplate.service.MessageSourceService;
 import com.mewebstudio.javaspringbootboilerplate.service.UserService;
-import com.mewebstudio.javaspringbootboilerplate.entity.User;
+
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -19,26 +43,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindException;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.multipart.MultipartFile;
-
-import static com.mewebstudio.javaspringbootboilerplate.util.Constants.SECURITY_SCHEME_NAME;
-
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import java.io.IOException;
 
 @RestController
 @RequiredArgsConstructor
@@ -270,6 +274,92 @@ public class AccountController extends AbstractBaseController {
     ) {
         boolean isFavorited = userService.alternarAnuncioFavorito(anuncioId);
         return ResponseEntity.ok(Map.of("favorited", isFavorited));
+    }
+
+    @GetMapping("/user/{id}")
+    @Operation(
+        summary = "Get user by ID",
+        description = "Returns user information by ID, respecting privacy settings",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME),
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successful operation",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "403",
+                description = "Forbidden - Profile is private or restricted",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "User not found",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            )
+        }
+    )
+    public ResponseEntity<UserResponse> getUserById(
+        @Parameter(description = "UUID of the user to retrieve", required = true)
+        @PathVariable UUID id
+    ) {
+        return ResponseEntity.ok(UserResponse.convert(userService.findByIdWithPrivacyCheck(id)));
+    }
+
+    @PutMapping("/privacy")
+    @Operation(
+        summary = "Update profile privacy settings",
+        description = "Updates the privacy settings of the authenticated user's profile",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME),
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successful operation",
+                content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = UserResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "400",
+                description = "Bad request - Invalid privacy type",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "401",
+                description = "Unauthorized",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            )
+        }
+    )
+    public ResponseEntity<UserResponse> updatePrivacy(
+        @Parameter(description = "Request body to update privacy settings", required = true)
+        @RequestBody @Valid UpdatePrivacyRequest request
+    ) {
+        return ResponseEntity.ok(UserResponse.convert(userService.updateProfilePrivacy(request.getPrivacidadePerfil())));
     }
 
 }

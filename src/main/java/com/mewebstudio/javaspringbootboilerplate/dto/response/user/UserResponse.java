@@ -1,14 +1,15 @@
 package com.mewebstudio.javaspringbootboilerplate.dto.response.user;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import com.mewebstudio.javaspringbootboilerplate.dto.response.AbstractBaseResponse;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -101,6 +102,14 @@ public class UserResponse extends AbstractBaseResponse {
         )
     private List<String> interesses;
 
+    @Schema(
+        name = "privacidadePerfil",
+        description = "Privacy settings of the user's profile",
+        type = "String",
+        example = "PUBLICO"
+    )
+    private String privacidadePerfil;
+
     /**
      * Convert User to UserResponse
      * @param user User
@@ -120,6 +129,7 @@ public class UserResponse extends AbstractBaseResponse {
             .regiaoDeInteresse(user.getRegiaoDeInteresse())
             .interesses(user.getInteresses() != null ?
                 user.getInteresses().stream().map(Enum::name).collect(Collectors.toList()) : null)
+            .privacidadePerfil(user.getPrivacidadePerfil().name())
             .build();
     }
 }

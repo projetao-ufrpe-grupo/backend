@@ -1,18 +1,21 @@
 package com.mewebstudio.javaspringbootboilerplate.controller;
 
-import com.mewebstudio.javaspringbootboilerplate.dto.response.EnumResponse;
-import com.mewebstudio.javaspringbootboilerplate.entity.Caracteristica;
-import com.mewebstudio.javaspringbootboilerplate.entity.InteressesUsuario;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.mewebstudio.javaspringbootboilerplate.dto.response.EnumResponse;
+import com.mewebstudio.javaspringbootboilerplate.entity.Caracteristica;
+import com.mewebstudio.javaspringbootboilerplate.entity.InteressesUsuario;
+import com.mewebstudio.javaspringbootboilerplate.entity.PrivacidadePerfil;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 
 @RestController
 @RequestMapping("/enums")
@@ -35,5 +38,14 @@ public class EnumController {
             .map(i -> new EnumResponse(i.name(), i.getDescricao()))
             .collect(Collectors.toList());
         return ResponseEntity.ok(interesses);
+    }
+
+    @GetMapping("/privacidade-perfil")
+    @Operation(summary = "Get all available profile privacy types")
+    public ResponseEntity<List<EnumResponse>> getPrivacidadePerfil() {
+        List<EnumResponse> privacidades = Arrays.stream(PrivacidadePerfil.values())
+            .map(p -> new EnumResponse(p.name(), p.getDescricao()))
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(privacidades);
     }
 }

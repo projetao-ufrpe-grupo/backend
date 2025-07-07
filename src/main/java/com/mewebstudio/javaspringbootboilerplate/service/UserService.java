@@ -1,32 +1,14 @@
 package com.mewebstudio.javaspringbootboilerplate.service;
 
-import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.RegisterRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.ResetPasswordRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.AbstractBaseCreateUserRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.AbstractBaseUpdateUserRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.CreateUserRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePasswordRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateProfileRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateUserRequest;
-import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
-import com.mewebstudio.javaspringbootboilerplate.entity.InteressesUsuario;
-import com.mewebstudio.javaspringbootboilerplate.entity.TipoUsuario;
-import com.mewebstudio.javaspringbootboilerplate.entity.User;
-import com.mewebstudio.javaspringbootboilerplate.entity.specification.UserFilterSpecification;
-import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.PaginationCriteria;
-import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.UserCriteria;
-import com.mewebstudio.javaspringbootboilerplate.event.UserEmailVerificationSendEvent;
-import com.mewebstudio.javaspringbootboilerplate.event.UserPasswordResetSendEvent;
-import com.mewebstudio.javaspringbootboilerplate.exception.BadRequestException;
-import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
-import com.mewebstudio.javaspringbootboilerplate.repository.AnuncioRepository;
-import com.mewebstudio.javaspringbootboilerplate.repository.UserRepository;
-import com.mewebstudio.javaspringbootboilerplate.security.JwtUserDetails;
-import com.mewebstudio.javaspringbootboilerplate.util.Constants;
-import com.mewebstudio.javaspringbootboilerplate.util.PageRequestBuilder;
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -43,15 +25,36 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.RegisterRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.ResetPasswordRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.AbstractBaseCreateUserRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.AbstractBaseUpdateUserRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.CreateUserRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePasswordRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateProfileRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateUserRequest;
+import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
+import com.mewebstudio.javaspringbootboilerplate.entity.InteressesUsuario;
+import com.mewebstudio.javaspringbootboilerplate.entity.PrivacidadePerfil;
+import com.mewebstudio.javaspringbootboilerplate.entity.TipoUsuario;
+import com.mewebstudio.javaspringbootboilerplate.entity.User;
+import com.mewebstudio.javaspringbootboilerplate.entity.specification.UserFilterSpecification;
+import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.PaginationCriteria;
+import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.UserCriteria;
+import com.mewebstudio.javaspringbootboilerplate.event.UserEmailVerificationSendEvent;
+import com.mewebstudio.javaspringbootboilerplate.event.UserPasswordResetSendEvent;
+import com.mewebstudio.javaspringbootboilerplate.exception.BadRequestException;
+import com.mewebstudio.javaspringbootboilerplate.exception.ForbiddenException;
+import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
+import com.mewebstudio.javaspringbootboilerplate.repository.AnuncioRepository;
+import com.mewebstudio.javaspringbootboilerplate.repository.UserRepository;
+import com.mewebstudio.javaspringbootboilerplate.security.JwtUserDetails;
+import com.mewebstudio.javaspringbootboilerplate.util.Constants;
+import com.mewebstudio.javaspringbootboilerplate.util.PageRequestBuilder;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Base64;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -639,5 +642,68 @@ public class UserService {
     private void passwordResetEventPublisher(User user) {
         user.setPasswordResetToken(passwordResetTokenService.create(user));
         eventPublisher.publishEvent(new UserPasswordResetSendEvent(this, user));
+    }
+
+    /**
+     * Find user by id with privacy check.
+     *
+     * @param id UUID
+     * @return User
+     * @throws NotFoundException if user not found
+     * @throws ForbiddenException if user profile is private or access is restricted
+     */
+    public User findByIdWithPrivacyCheck(UUID id) {
+        User targetUser = findById(id);
+        User currentUser = null;
+        
+        try {
+            currentUser = getUser();
+        } catch (BadCredentialsException e) {
+            // Usuário não autenticado
+        }
+
+        // Se for o próprio usuário, permite acesso
+        if (currentUser != null && currentUser.getId().equals(targetUser.getId())) {
+            return targetUser;
+        }
+
+        // Verifica as regras de privacidade
+        switch (targetUser.getPrivacidadePerfil()) {
+            case PRIVADO:
+                throw new ForbiddenException(messageSourceService.get("profile_is_private"));
+            
+            case APENAS_LOCADORES:
+                if (currentUser == null || 
+                    currentUser.getRoles().stream()
+                        .noneMatch(role -> role.getName().name().equals("LOCADOR"))) {
+                    throw new ForbiddenException(messageSourceService.get("profile_only_visible_to_locadores"));
+                }
+                break;
+            
+            case PUBLICO:
+            default:
+                // Permite acesso
+                break;
+        }
+
+        return targetUser;
+    }
+
+    /**
+     * Update user profile privacy.
+     *
+     * @param privacidadePerfil String
+     * @return User
+     */
+    public User updateProfilePrivacy(String privacidadePerfil) {
+        User user = getUser();
+        try {
+            PrivacidadePerfil novaPrivacidade = PrivacidadePerfil.valueOf(privacidadePerfil.toUpperCase());
+            user.setPrivacidadePerfil(novaPrivacidade);
+            return userRepository.save(user);
+        } catch (IllegalArgumentException e) {
+            throw new BadRequestException(messageSourceService.get("invalid_enum_value", 
+                new String[]{privacidadePerfil}));
+        }
     }
 }
