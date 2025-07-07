@@ -93,19 +93,9 @@ public class AnuncioService {
      *
      * @return Uma lista de todas as entidades Anuncio.
      */
-    @Transactional(readOnly = true) // Garante que tudo aconteça na mesma sessão
+    @Transactional(readOnly = true)
     public List<Anuncio> findAll() {
-        // Busca a lista principal de anúncios.
-        List<Anuncio> anuncios = anuncioRepository.findAllWithImovelAndAnunciante();
-    
-        // Se não houver anúncios, retorne a lista vazia.
-        if (anuncios.isEmpty()) {
-            return anuncios;
-        }
-
-        // Usa a lista de anúncios para carregar suas coleções internas.
-        // O resultado desta chamada é uma lista com as coleções inicializadas.
-        return anuncioRepository.findAllWithCollections(anuncios);
+        return anuncioRepository.findAllWithImovelAndCaracteristicas();
     }
 
     /**
@@ -115,8 +105,9 @@ public class AnuncioService {
      * @return A entidade Anuncio encontrada.
      * @throws NotFoundException se nenhum anúncio for encontrado com o ID fornecido.
      */
+    @Transactional(readOnly = true)
     public Anuncio findById(UUID id) {
-        return anuncioRepository.findById(id)
+        return anuncioRepository.findByIdWithImovelAndCaracteristicas(id)
             .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + id));
     }
 
