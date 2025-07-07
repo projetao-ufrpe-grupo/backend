@@ -103,25 +103,9 @@ public class AnuncioService {
      *
      * @return Uma lista de todas as entidades Anuncio.
      */
-<<<<<<< HEAD
-    @Transactional(readOnly = true) // Garante que tudo aconteça na mesma sessão
-    public List<Anuncio> findAll() {
-        // Busca a lista principal de anúncios.
-        List<Anuncio> anuncios = anuncioRepository.findAllWithImovelAndAnunciante();
-    
-        // Se não houver anúncios, retorne a lista vazia.
-        if (anuncios.isEmpty()) {
-            return anuncios;
-        }
-
-        // Usa a lista de anúncios para carregar suas coleções internas.
-        // O resultado desta chamada é uma lista com as coleções inicializadas.
-        return anuncioRepository.findAllWithCollections(anuncios);
-=======
     @Transactional(readOnly = true)
     public List<Anuncio> findAll() {
         return anuncioRepository.findAllWithImovelAndCaracteristicas();
->>>>>>> afa2050fe90a2885ab77e7a2796a387702756063
     }
 
     /**
