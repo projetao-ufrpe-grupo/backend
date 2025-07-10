@@ -16,13 +16,16 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.CreateAnuncioRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.UpdateAnuncioRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.AnuncioResponse;
 import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
 import com.mewebstudio.javaspringbootboilerplate.service.AnuncioService;
@@ -104,6 +107,22 @@ public class AnuncioController {
     ) {
         Anuncio anuncio = anuncioService.findById(anuncioId);
         return ResponseEntity.ok(AnuncioResponse.convert(anuncio));
+    }
+
+    @PutMapping("/update/{id}")
+    @Operation(
+        summary = "Update an announcement",
+        description = "Updates the details of a specific announcement. Only the owner can perform this action. " +
+                      "The property type and address cannot be changed if the announcement is active (not paused).",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME)
+    )
+    public ResponseEntity<AnuncioResponse> updateAnuncio(
+        @Parameter(description = "ID of the announcement to update", required = true)
+        @PathVariable("id") UUID anuncioId,
+        @RequestBody @Valid UpdateAnuncioRequest request
+    ) {
+        Anuncio updatedAnuncio = anuncioService.update(anuncioId, request);
+        return ResponseEntity.ok(AnuncioResponse.convert(updatedAnuncio));
     }
 
     @PatchMapping("/{id}/toggle-pause")
