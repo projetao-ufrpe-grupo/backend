@@ -22,6 +22,7 @@ public interface AnuncioRepository extends JpaRepository<Anuncio, UUID> {
 
     @Query("SELECT DISTINCT a FROM Anuncio a " +
            "LEFT JOIN FETCH a.imovel i " +
+           "LEFT JOIN FETCH a.anunciante " +
            "LEFT JOIN FETCH i.caracteristicas " +
            "LEFT JOIN FETCH i.fotos " +
            "WHERE a.id = :id")
@@ -29,6 +30,7 @@ public interface AnuncioRepository extends JpaRepository<Anuncio, UUID> {
 
     @Query("SELECT DISTINCT a FROM Anuncio a " +
            "LEFT JOIN FETCH a.imovel i " +
+           "LEFT JOIN FETCH a.anunciante " +
            "LEFT JOIN FETCH i.caracteristicas " +
            "LEFT JOIN FETCH i.fotos " +
            "WHERE a.anunciante.id = :anuncianteId")
