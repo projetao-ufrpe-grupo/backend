@@ -109,7 +109,7 @@ public class AnuncioController {
         return ResponseEntity.ok(AnuncioResponse.convert(anuncio));
     }
 
-    @PutMapping("/update/{id}")
+    @PutMapping("/{id}")
     @Operation(
         summary = "Update an announcement",
         description = "Updates the details of a specific announcement. Only the owner can perform this action. " +
