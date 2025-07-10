@@ -26,4 +26,12 @@ public interface AnuncioRepository extends JpaRepository<Anuncio, UUID> {
            "LEFT JOIN FETCH i.fotos " +
            "WHERE a.id = :id")
     Optional<Anuncio> findByIdWithImovelAndCaracteristicas(@Param("id") UUID id);
+
+    @Query("SELECT DISTINCT a FROM Anuncio a " +
+           "LEFT JOIN FETCH a.imovel i " +
+           "LEFT JOIN FETCH i.caracteristicas " +
+           "LEFT JOIN FETCH i.fotos " +
+           "WHERE a.anunciante.id = :anuncianteId")
+    List<Anuncio> findAllByAnuncianteIdWithDetails(@Param("anuncianteId") UUID anuncianteId);
+
 }

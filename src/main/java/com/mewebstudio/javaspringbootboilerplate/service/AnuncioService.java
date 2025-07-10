@@ -122,6 +122,17 @@ public class AnuncioService {
     }
 
     /**
+     * Busca todos os anúncios de um anunciante específico.
+     *
+     * @param anuncianteId O UUID do anunciante.
+     * @return Uma lista de entidades Anuncio do anunciante.
+     */
+    @Transactional(readOnly = true)
+    public List<Anuncio> findAllByAnuncianteId(UUID anuncianteId) {
+        return anuncioRepository.findAllByAnuncianteIdWithDetails(anuncianteId);
+    }
+
+    /**
      * Alterna o status de 'pausado' de um anúncio.
      * Apenas o proprietário do anúncio pode realizar esta ação.
      *

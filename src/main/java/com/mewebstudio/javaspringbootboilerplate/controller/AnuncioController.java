@@ -77,6 +77,21 @@ public class AnuncioController {
         return ResponseEntity.ok(anuncios);
     }
 
+    @GetMapping("/anunciante/{anuncianteId}")
+    @Operation(
+        summary = "Get all announcements from a specific user",
+        description = "Returns a list of all announcements registered by a specific user (announcer)."
+    )
+    public ResponseEntity<List<AnuncioResponse>> getAnunciosByAnunciante(
+        @Parameter(description = "ID of the announcer to retrieve announcements from", required = true)
+        @PathVariable UUID anuncianteId
+    ) {
+        List<AnuncioResponse> anuncios = anuncioService.findAllByAnuncianteId(anuncianteId).stream()
+            .map(AnuncioResponse::convert)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(anuncios);
+    }
+
     @GetMapping("/{id}")
     @Operation(
         summary = "Get announcement details by ID",
