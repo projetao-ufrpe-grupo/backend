@@ -59,6 +59,9 @@ public class AnuncioResponse {
     @Schema(description = "Data de disponibilidade do imóvel", example = "2025-08-01")
     private LocalDate dataDisponibilidade;
 
+    @Schema(description = "CEP do imóvel", example = "31270-901")
+    private String cep;
+
     @Schema(description = "Endereço completo formatado")
     private String enderecoCompleto;
 
@@ -81,7 +84,6 @@ public class AnuncioResponse {
     public static class AnuncianteResponse {
         private UUID id;
         private String name;
-        private String lastName;
         private String fotoPerfilBase64;
     }
 
@@ -117,13 +119,28 @@ public class AnuncioResponse {
             .anunciante(anuncianteResponse);
         
         if (imovel != null) {
+            // Lógica para construir o endereço completo
+            StringBuilder enderecoBuilder = new StringBuilder();
+            enderecoBuilder.append(imovel.getLogradouro()).append(", ").append(imovel.getNumero());
+            
+            // Adiciona o complemento apenas se ele existir
+            if (imovel.getComplemento() != null && !imovel.getComplemento().isBlank()) {
+                enderecoBuilder.append(", ").append(imovel.getComplemento());
+            }
+            
+            enderecoBuilder.append(" - ").append(imovel.getBairro())
+                         .append(", ").append(imovel.getCidade())
+                         .append(" - ").append(imovel.getEstado().name());
+
+
             builder.descricao(imovel.getDescricao())
                 .tipo(imovel.getTipo() != null ? imovel.getTipo().name() : null)
                 .qtdQuartos(imovel.getQtdQuartos())
                 .qtdBanheiros(imovel.getQtdBanheiros())
                 .area(imovel.getArea())
                 .dataDisponibilidade(imovel.getDataDisponibilidade())
-                .enderecoCompleto(String.format("%s, %s - %s, %s", imovel.getLogradouro(), imovel.getNumero(), imovel.getBairro(), imovel.getCidade()))
+                .cep(imovel.getCep())
+                .enderecoCompleto(enderecoBuilder.toString())
                 .caracteristicas(imovel.getCaracteristicas() != null ?
                     new ArrayList<>(imovel.getCaracteristicas().stream().map(Enum::name).collect(Collectors.toList())) : null)
                 .fotosBase64(imovel.getFotos() != null ?
