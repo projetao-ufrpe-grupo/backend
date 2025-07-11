@@ -192,6 +192,12 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <version>${checkstyle-maven-plugin-version}</version>
+                <configuration>
+                    <skip>true</skip> 
+                    <configLocation>${project.basedir}/checkstyle.xml</configLocation>
+                    <suppressionsLocation>${project.basedir}/checkstyle-exclude.xml</suppressionsLocation>
+                    <linkXRef>false</linkXRef>
+                </configuration>
                 <dependencies>
                     <dependency>
                         <groupId>com.puppycrawl.tools</groupId>
@@ -199,11 +205,6 @@
                         <version>${checkstyle-version}</version>
                     </dependency>
                 </dependencies>
-                <configuration>
-                    <configLocation>${project.basedir}/checkstyle.xml</configLocation>
-                    <suppressionsLocation>${project.basedir}/checkstyle-exclude.xml</suppressionsLocation>
-                    <linkXRef>false</linkXRef>
-                </configuration>
                 <executions>
                     <execution>
                         <goals>

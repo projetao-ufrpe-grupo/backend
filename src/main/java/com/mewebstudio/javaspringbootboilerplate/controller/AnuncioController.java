@@ -12,17 +12,22 @@ import java.util.stream.Collectors;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.CreateAnuncioRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.UpdateAnuncioRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.AnuncioResponse;
 import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
 import com.mewebstudio.javaspringbootboilerplate.service.AnuncioService;
@@ -77,6 +82,21 @@ public class AnuncioController {
         return ResponseEntity.ok(anuncios);
     }
 
+    @GetMapping("/anunciante/{anuncianteId}")
+    @Operation(
+        summary = "Get all announcements from a specific user",
+        description = "Returns a list of all announcements registered by a specific user (announcer)."
+    )
+    public ResponseEntity<List<AnuncioResponse>> getAnunciosByAnunciante(
+        @Parameter(description = "ID of the announcer to retrieve announcements from", required = true)
+        @PathVariable UUID anuncianteId
+    ) {
+        List<AnuncioResponse> anuncios = anuncioService.findAllByAnuncianteId(anuncianteId).stream()
+            .map(AnuncioResponse::convert)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(anuncios);
+    }
+
     @GetMapping("/{id}")
     @Operation(
         summary = "Get announcement details by ID",
@@ -89,6 +109,54 @@ public class AnuncioController {
     ) {
         Anuncio anuncio = anuncioService.findById(anuncioId);
         return ResponseEntity.ok(AnuncioResponse.convert(anuncio));
+    }
+
+    @PutMapping("/{id}")
+    @Operation(
+        summary = "Update an announcement",
+        description = "Updates the details of a specific announcement. Only the owner can perform this action. " +
+                      "The property type and address cannot be changed if the announcement is active (not paused).",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME)
+    )
+    public ResponseEntity<AnuncioResponse> updateAnuncio(
+        @Parameter(description = "ID of the announcement to update", required = true)
+        @PathVariable("id") UUID anuncioId,
+        @RequestBody @Valid UpdateAnuncioRequest request
+    ) {
+        Anuncio updatedAnuncio = anuncioService.update(anuncioId, request);
+        return ResponseEntity.ok(AnuncioResponse.convert(updatedAnuncio));
+    }
+
+    @PostMapping(value = "/{id}/fotos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(
+        summary = "Add photos to an announcement",
+        description = "Uploads one or more new photos for a specific announcement. Only the owner can add photos.",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME)
+    )
+    public ResponseEntity<AnuncioResponse> addFotosToAnuncio(
+        @Parameter(description = "ID of the announcement to add photos to", required = true)
+        @PathVariable("id") UUID anuncioId,
+        @Parameter(description = "List of image files to be uploaded", required = true)
+        @RequestParam("fotos") List<MultipartFile> fotos
+    ) throws IOException {
+        Anuncio updatedAnuncio = anuncioService.addFotos(anuncioId, fotos);
+        return ResponseEntity.ok(AnuncioResponse.convert(updatedAnuncio));
+    }
+
+    @DeleteMapping("/{anuncioId}/fotos/{fotoId}")
+    @Operation(
+        summary = "Delete a photo from an announcement",
+        description = "Deletes a specific photo from an announcement. Only the owner can delete photos.",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME)
+    )
+    public ResponseEntity<Void> deleteFotoFromAnuncio(
+        @Parameter(description = "ID of the announcement", required = true)
+        @PathVariable UUID anuncioId,
+        @Parameter(description = "ID of the photo to be deleted", required = true)
+        @PathVariable UUID fotoId
+    ) {
+        anuncioService.deleteFoto(anuncioId, fotoId);
+        return ResponseEntity.noContent().build();
     }
 
     @PatchMapping("/{id}/toggle-pause")

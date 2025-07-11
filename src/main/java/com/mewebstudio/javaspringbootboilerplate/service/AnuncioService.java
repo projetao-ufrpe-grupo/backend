@@ -7,12 +7,14 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.CreateAnuncioRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.UpdateAnuncioRequest;
 import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
 import com.mewebstudio.javaspringbootboilerplate.entity.Caracteristica;
 import com.mewebstudio.javaspringbootboilerplate.entity.Estado;
@@ -119,6 +121,155 @@ public class AnuncioService {
     public Anuncio findById(UUID id) {
         return anuncioRepository.findByIdWithImovelAndCaracteristicas(id)
             .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + id));
+    }
+
+    /**
+     * Busca todos os anúncios de um anunciante específico.
+     *
+     * @param anuncianteId O UUID do anunciante.
+     * @return Uma lista de entidades Anuncio do anunciante.
+     */
+    @Transactional(readOnly = true)
+    public List<Anuncio> findAllByAnuncianteId(UUID anuncianteId) {
+        return anuncioRepository.findAllByAnuncianteIdWithDetails(anuncianteId);
+    }
+
+    /**
+     * Atualiza os dados de um anúncio existente.
+     *
+     * @param anuncioId O ID do anúncio a ser atualizado.
+     * @param request   O DTO com os novos dados.
+     * @return A entidade Anuncio atualizada.
+     * @throws NotFoundException  se o anúncio não for encontrado.
+     * @throws ForbiddenException se o usuário não for o proprietário ou se tentar
+     *                            alterar campos bloqueados em um anúncio ativo.
+     */
+    @Transactional
+    public Anuncio update(UUID anuncioId, UpdateAnuncioRequest request) {
+        User currentUser = userService.getUser();
+        Anuncio anuncio = anuncioRepository.findByIdWithImovelAndCaracteristicas(anuncioId)
+                .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + anuncioId));
+
+        if (!anuncio.getAnunciante().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Você não tem permissão para editar este anúncio.");
+        }
+
+        Imovel imovel = anuncio.getImovel();
+
+        // Atualizar os dados que são sempre permitidos
+        anuncio.setDuracaoMinimaContrato(request.getDuracaoMinimaContrato());
+        imovel.setDescricao(request.getDescricao());
+        imovel.setQtdQuartos(request.getQtdQuartos());
+        imovel.setQtdBanheiros(request.getQtdBanheiros());
+        imovel.setArea(request.getArea());
+        imovel.setDataDisponibilidade(request.getDataDisponibilidade());
+        if (request.getCaracteristicas() != null) {
+            imovel.setCaracteristicas(request.getCaracteristicas().stream()
+                    .map(String::toUpperCase)
+                    .map(Caracteristica::valueOf)
+                    .collect(Collectors.toSet()));
+        } else {
+            imovel.getCaracteristicas().clear();
+        }
+
+        // Se o anúncio está pausado, permite a alteração de preço, tipo e endereço.
+        if (anuncio.isPausado()) {
+            anuncio.setAluguel(request.getAluguel());
+            anuncio.setCondominio(request.getCondominio());
+            anuncio.setCaucao(request.getCaucao());
+
+            imovel.setTipo(TipoImovel.valueOf(request.getTipo().toUpperCase()));
+            imovel.setCep(request.getCep());
+            imovel.setCidade(request.getCidade());
+            imovel.setEstado(Estado.valueOf(request.getEstado().toUpperCase()));
+            imovel.setLogradouro(request.getLogradouro());
+            imovel.setNumero(request.getNumero());
+            imovel.setBairro(request.getBairro());
+            imovel.setComplemento(request.getComplemento());
+        } else {
+            // Se o anúncio está ativo, verifica se houve tentativa de alteração.
+            if (!Objects.equals(anuncio.getAluguel(), request.getAluguel()) ||
+                !Objects.equals(anuncio.getCondominio(), request.getCondominio()) ||
+                !Objects.equals(anuncio.getCaucao(), request.getCaucao())) {
+                throw new ForbiddenException("O preço (aluguel, condomínio, caução) não pode ser alterado em um anúncio ativo.");
+            }
+
+            if (!Objects.equals(imovel.getTipo().name(), request.getTipo().toUpperCase())) {
+                throw new ForbiddenException("O tipo do imóvel não pode ser alterado em um anúncio ativo.");
+            }
+            if (!Objects.equals(imovel.getCep(), request.getCep()) ||
+                !Objects.equals(imovel.getCidade(), request.getCidade()) ||
+                !Objects.equals(imovel.getEstado().name(), request.getEstado().toUpperCase()) ||
+                !Objects.equals(imovel.getLogradouro(), request.getLogradouro()) ||
+                !Objects.equals(imovel.getNumero(), request.getNumero()) ||
+                !Objects.equals(imovel.getBairro(), request.getBairro())) {
+                throw new ForbiddenException("O endereço não pode ser alterado em um anúncio ativo.");
+            }
+        }
+
+        return anuncioRepository.save(anuncio);
+    }
+
+    /**
+     * Adiciona novas fotos a um anúncio existente.
+     *
+     * @param anuncioId O ID do anúncio.
+     * @param fotos     A lista de arquivos de imagem a serem adicionados.
+     * @return A entidade Anuncio atualizada com as novas fotos.
+     * @throws IOException se houver um erro ao processar os arquivos.
+     */
+    @Transactional(rollbackFor = {IOException.class, Exception.class})
+    public Anuncio addFotos(UUID anuncioId, List<MultipartFile> fotos) throws IOException {
+        User currentUser = userService.getUser();
+        Anuncio anuncio = anuncioRepository.findByIdWithImovelAndCaracteristicas(anuncioId)
+                .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + anuncioId));
+
+        if (!anuncio.getAnunciante().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Você não tem permissão para adicionar fotos a este anúncio.");
+        }
+
+        if (fotos == null || fotos.isEmpty()) {
+            return anuncio; // Nenhuma foto para adicionar
+        }
+
+        Imovel imovel = anuncio.getImovel();
+        for (MultipartFile file : fotos) {
+            String base64Data = Base64.getEncoder().encodeToString(file.getBytes());
+            Foto foto = Foto.builder()
+                    .dadosBase64(base64Data)
+                    .imovel(imovel)
+                    .build();
+            imovel.getFotos().add(foto);
+        }
+
+        return anuncioRepository.save(anuncio);
+    }
+
+    /**
+     * Deleta uma foto específica de um anúncio.
+     *
+     * @param anuncioId O ID do anúncio.
+     * @param fotoId    O ID da foto a ser deletada.
+     */
+    @Transactional
+    public void deleteFoto(UUID anuncioId, UUID fotoId) {
+        User currentUser = userService.getUser();
+        Anuncio anuncio = anuncioRepository.findByIdWithImovelAndCaracteristicas(anuncioId)
+                .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + anuncioId));
+
+        if (!anuncio.getAnunciante().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Você não tem permissão para deletar fotos deste anúncio.");
+        }
+
+        Imovel imovel = anuncio.getImovel();
+        boolean removed = imovel.getFotos().removeIf(foto -> foto.getId().equals(fotoId));
+
+        if (!removed) {
+            throw new NotFoundException("Foto não encontrada neste anúncio com o ID: " + fotoId);
+        }
+
+        // A exclusão da foto acontece automaticamente ao final da transação 
+        // por causa da configuração 'orphanRemoval=true' na entidade Imovel.
     }
 
     /**

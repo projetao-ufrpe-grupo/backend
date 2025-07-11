@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
-import com.mewebstudio.javaspringbootboilerplate.entity.Foto;
 import com.mewebstudio.javaspringbootboilerplate.entity.Imovel;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
 
@@ -59,6 +58,9 @@ public class AnuncioResponse {
     @Schema(description = "Data de disponibilidade do imóvel", example = "2025-08-01")
     private LocalDate dataDisponibilidade;
 
+    @Schema(description = "CEP do imóvel", example = "31270-901")
+    private String cep;
+
     @Schema(description = "Endereço completo formatado")
     private String enderecoCompleto;
 
@@ -66,7 +68,7 @@ public class AnuncioResponse {
     private List<String> caracteristicas;
 
     @Schema(description = "Lista de fotos do imóvel em formato Base64")
-    private List<String> fotosBase64;
+    private List<FotoResponse> fotos;
 
     // --- Dados do Anunciante ---
     @Schema(description = "Informações do anunciante")
@@ -81,8 +83,21 @@ public class AnuncioResponse {
     public static class AnuncianteResponse {
         private UUID id;
         private String name;
-        private String lastName;
         private String fotoPerfilBase64;
+    }
+
+    /**
+     * DTO aninhado para informações da foto.
+     */
+    @Getter
+    @Setter
+    @Builder
+    public static class FotoResponse {
+        @Schema(description = "ID único da foto", example = "123e4567-e89b-12d3-a456-426614174001")
+        private UUID id;
+
+        @Schema(description = "Dados da imagem em formato Base64")
+        private String dadosBase64;
     }
 
     /**
@@ -117,17 +132,37 @@ public class AnuncioResponse {
             .anunciante(anuncianteResponse);
         
         if (imovel != null) {
+            // Lógica para construir o endereço completo
+            StringBuilder enderecoBuilder = new StringBuilder();
+            enderecoBuilder.append(imovel.getLogradouro()).append(", ").append(imovel.getNumero());
+            
+            // Adiciona o complemento apenas se ele existir
+            if (imovel.getComplemento() != null && !imovel.getComplemento().isBlank()) {
+                enderecoBuilder.append(", ").append(imovel.getComplemento());
+            }
+            
+            enderecoBuilder.append(" - ").append(imovel.getBairro())
+                         .append(", ").append(imovel.getCidade())
+                         .append(" - ").append(imovel.getEstado().name());
+
+
             builder.descricao(imovel.getDescricao())
                 .tipo(imovel.getTipo() != null ? imovel.getTipo().name() : null)
                 .qtdQuartos(imovel.getQtdQuartos())
                 .qtdBanheiros(imovel.getQtdBanheiros())
                 .area(imovel.getArea())
                 .dataDisponibilidade(imovel.getDataDisponibilidade())
-                .enderecoCompleto(String.format("%s, %s - %s, %s", imovel.getLogradouro(), imovel.getNumero(), imovel.getBairro(), imovel.getCidade()))
+                .cep(imovel.getCep())
+                .enderecoCompleto(enderecoBuilder.toString())
                 .caracteristicas(imovel.getCaracteristicas() != null ?
                     new ArrayList<>(imovel.getCaracteristicas().stream().map(Enum::name).collect(Collectors.toList())) : null)
-                .fotosBase64(imovel.getFotos() != null ?
-                    new ArrayList<>(imovel.getFotos().stream().map(Foto::getDadosBase64).collect(Collectors.toList())) : null);
+                .fotos(imovel.getFotos() != null ?
+                    imovel.getFotos().stream()
+                        .map(foto -> FotoResponse.builder()
+                                .id(foto.getId())
+                                .dadosBase64(foto.getDadosBase64())
+                                .build())
+                        .collect(Collectors.toList()) : null);
         }
 
         return builder.build();
