@@ -211,6 +211,68 @@ public class AnuncioService {
     }
 
     /**
+     * Adiciona novas fotos a um anúncio existente.
+     *
+     * @param anuncioId O ID do anúncio.
+     * @param fotos     A lista de arquivos de imagem a serem adicionados.
+     * @return A entidade Anuncio atualizada com as novas fotos.
+     * @throws IOException se houver um erro ao processar os arquivos.
+     */
+    @Transactional(rollbackFor = {IOException.class, Exception.class})
+    public Anuncio addFotos(UUID anuncioId, List<MultipartFile> fotos) throws IOException {
+        User currentUser = userService.getUser();
+        Anuncio anuncio = anuncioRepository.findByIdWithImovelAndCaracteristicas(anuncioId)
+                .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + anuncioId));
+
+        if (!anuncio.getAnunciante().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Você não tem permissão para adicionar fotos a este anúncio.");
+        }
+
+        if (fotos == null || fotos.isEmpty()) {
+            return anuncio; // Nenhuma foto para adicionar
+        }
+
+        Imovel imovel = anuncio.getImovel();
+        for (MultipartFile file : fotos) {
+            String base64Data = Base64.getEncoder().encodeToString(file.getBytes());
+            Foto foto = Foto.builder()
+                    .dadosBase64(base64Data)
+                    .imovel(imovel)
+                    .build();
+            imovel.getFotos().add(foto);
+        }
+
+        return anuncioRepository.save(anuncio);
+    }
+
+    /**
+     * Deleta uma foto específica de um anúncio.
+     *
+     * @param anuncioId O ID do anúncio.
+     * @param fotoId    O ID da foto a ser deletada.
+     */
+    @Transactional
+    public void deleteFoto(UUID anuncioId, UUID fotoId) {
+        User currentUser = userService.getUser();
+        Anuncio anuncio = anuncioRepository.findByIdWithImovelAndCaracteristicas(anuncioId)
+                .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + anuncioId));
+
+        if (!anuncio.getAnunciante().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Você não tem permissão para deletar fotos deste anúncio.");
+        }
+
+        Imovel imovel = anuncio.getImovel();
+        boolean removed = imovel.getFotos().removeIf(foto -> foto.getId().equals(fotoId));
+
+        if (!removed) {
+            throw new NotFoundException("Foto não encontrada neste anúncio com o ID: " + fotoId);
+        }
+
+        // A exclusão da foto acontece automaticamente ao final da transação 
+        // por causa da configuração 'orphanRemoval=true' na entidade Imovel.
+    }
+
+    /**
      * Alterna o status de 'pausado' de um anúncio.
      * Apenas o proprietário do anúncio pode realizar esta ação.
      *
