@@ -7,7 +7,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
-import com.mewebstudio.javaspringbootboilerplate.entity.Foto;
 import com.mewebstudio.javaspringbootboilerplate.entity.Imovel;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
 
@@ -69,7 +68,7 @@ public class AnuncioResponse {
     private List<String> caracteristicas;
 
     @Schema(description = "Lista de fotos do imóvel em formato Base64")
-    private List<String> fotosBase64;
+    private List<FotoResponse> fotos;
 
     // --- Dados do Anunciante ---
     @Schema(description = "Informações do anunciante")
@@ -85,6 +84,20 @@ public class AnuncioResponse {
         private UUID id;
         private String name;
         private String fotoPerfilBase64;
+    }
+
+    /**
+     * DTO aninhado para informações da foto.
+     */
+    @Getter
+    @Setter
+    @Builder
+    public static class FotoResponse {
+        @Schema(description = "ID único da foto", example = "123e4567-e89b-12d3-a456-426614174001")
+        private UUID id;
+
+        @Schema(description = "Dados da imagem em formato Base64")
+        private String dadosBase64;
     }
 
     /**
@@ -143,8 +156,13 @@ public class AnuncioResponse {
                 .enderecoCompleto(enderecoBuilder.toString())
                 .caracteristicas(imovel.getCaracteristicas() != null ?
                     new ArrayList<>(imovel.getCaracteristicas().stream().map(Enum::name).collect(Collectors.toList())) : null)
-                .fotosBase64(imovel.getFotos() != null ?
-                    new ArrayList<>(imovel.getFotos().stream().map(Foto::getDadosBase64).collect(Collectors.toList())) : null);
+                .fotos(imovel.getFotos() != null ?
+                    imovel.getFotos().stream()
+                        .map(foto -> FotoResponse.builder()
+                                .id(foto.getId())
+                                .dadosBase64(foto.getDadosBase64())
+                                .build())
+                        .collect(Collectors.toList()) : null);
         }
 
         return builder.build();
