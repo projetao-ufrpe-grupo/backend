@@ -29,11 +29,16 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.CreateAnuncioRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.UpdateAnuncioRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.AnuncioResponse;
+import com.mewebstudio.javaspringbootboilerplate.dto.response.ErrorResponse;
+import com.mewebstudio.javaspringbootboilerplate.dto.response.user.UserResponse;
 import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
 import com.mewebstudio.javaspringbootboilerplate.service.AnuncioService;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -80,6 +85,39 @@ public class AnuncioController {
             .map(AnuncioResponse::convert)
             .collect(Collectors.toList());
         return ResponseEntity.ok(anuncios);
+    }
+
+    @GetMapping("/{id}/favoritos")
+    @Operation(
+        summary = "List users who favorited an announcement",
+        description = "Returns a list of users who favorited the specified announcement and have public profiles.",
+        responses = {
+            @ApiResponse(
+                responseCode = "200",
+                description = "Successful operation",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = UserResponse.class)
+                )
+            ),
+            @ApiResponse(
+                responseCode = "404",
+                description = "Announcement not found",
+                content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class)
+                )
+            )
+        }
+    )
+    public ResponseEntity<List<UserResponse>> getFavoritingUsers(
+        @Parameter(description = "ID of the announcement", required = true)
+        @PathVariable UUID id
+    ) {
+        List<UserResponse> users = anuncioService.getUsuariosInteressados(id).stream()
+            .map(UserResponse::convert)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(users);
     }
 
     @GetMapping("/anunciante/{anuncianteId}")
