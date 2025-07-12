@@ -61,6 +61,7 @@ public class WebSecurityConfig {
                 ).permitAll()
                 .requestMatchers(HttpMethod.GET, "/anuncios/**").permitAll()
                 .requestMatchers("/admin/**").hasAuthority(Constants.RoleEnum.ADMIN.name())
+                .requestMatchers(HttpMethod.GET, "/users/**").permitAll()
                 .anyRequest().authenticated()
             )
             .build();
