@@ -20,12 +20,14 @@ import com.mewebstudio.javaspringbootboilerplate.entity.Caracteristica;
 import com.mewebstudio.javaspringbootboilerplate.entity.Estado;
 import com.mewebstudio.javaspringbootboilerplate.entity.Foto;
 import com.mewebstudio.javaspringbootboilerplate.entity.Imovel;
+import com.mewebstudio.javaspringbootboilerplate.entity.PrivacidadePerfil;
 import com.mewebstudio.javaspringbootboilerplate.entity.TipoImovel;
 import com.mewebstudio.javaspringbootboilerplate.entity.User;
 import com.mewebstudio.javaspringbootboilerplate.exception.ForbiddenException;
 import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
 import com.mewebstudio.javaspringbootboilerplate.repository.AnuncioRepository;
 import com.mewebstudio.javaspringbootboilerplate.repository.ImovelRepository;
+import com.mewebstudio.javaspringbootboilerplate.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +40,7 @@ public class AnuncioService {
     private final ImovelRepository imovelRepository;
     private final AnuncioRepository anuncioRepository;
     private final UserService userService;
+    private final UserRepository userRepository;
 
     @Transactional(rollbackFor = {IOException.class, Exception.class})
     public Anuncio create(CreateAnuncioRequest request, List<MultipartFile> fotos) throws IOException {
@@ -132,6 +135,24 @@ public class AnuncioService {
     @Transactional(readOnly = true)
     public List<Anuncio> findAllByAnuncianteId(UUID anuncianteId) {
         return anuncioRepository.findAllByAnuncianteIdWithDetails(anuncianteId);
+    }
+
+    /**
+     * Busca todos os usuários que favoritaram um anúncio específico e possuem perfil público.
+     *
+     * @param anuncioId O ID do anúncio.
+     * @return Uma lista de usuários que favoritaram o anúncio e têm perfil público.
+     */
+    @Transactional(readOnly = true)
+    public List<User> getUsuariosInteressados(UUID anuncioId) {
+        if (!anuncioRepository.existsById(anuncioId)) {
+            throw new NotFoundException("Anúncio não encontrado com o ID: " + anuncioId);
+        }
+
+        // Chama o método na instância injetada do userRepository
+        return userRepository.findUsersByFavoritedAnuncioAndPublicProfile(
+            anuncioId, PrivacidadePerfil.PUBLICO
+        );
     }
 
     /**
