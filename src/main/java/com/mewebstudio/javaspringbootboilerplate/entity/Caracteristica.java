@@ -22,7 +22,10 @@ public enum Caracteristica {
     ARMARIOS_EMBUTIDOS("Armários embutidos"),
     LAVANDERIA_NO_LOCAL("Lavanderia no Local"),
     BICICLETARIO("Bicicletário"),
-    TRANSPORTE_PUBLICO_PROXIMO("Transporte Público Próximo");
+    TRANSPORTE_PUBLICO_PROXIMO("Transporte Público Próximo"),
+    PROXIMO_A_COMERCIO("Próximo a Comércio"),
+    SO_MULHERES("Apenas para mulheres"),
+    AMBOS_OS_SEXOS("Ambos os sexos");
 
     private final String descricao;
 
