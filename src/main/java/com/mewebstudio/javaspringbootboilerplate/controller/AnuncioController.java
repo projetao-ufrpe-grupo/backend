@@ -32,6 +32,7 @@ import com.mewebstudio.javaspringbootboilerplate.dto.response.AnuncioResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.ErrorResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.user.UserResponse;
 import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
+import com.mewebstudio.javaspringbootboilerplate.entity.TipoImovel;
 import com.mewebstudio.javaspringbootboilerplate.service.AnuncioService;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -82,6 +83,32 @@ public class AnuncioController {
     @Transactional(readOnly = true)
     public ResponseEntity<List<AnuncioResponse>> getAllAnuncios() {
         List<AnuncioResponse> anuncios = anuncioService.findAll().stream()
+            .map(AnuncioResponse::convert)
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(anuncios);
+    }
+
+    @GetMapping("/search")
+    @Operation(
+        summary = "Search for announcements with filters",
+        description = "Returns a list of announcements based on the provided filter criteria. All filters are optional."
+    )
+    public ResponseEntity<List<AnuncioResponse>> searchAnuncios(
+        @Parameter(description = "Type of property (e.g., APARTAMENTO, CASA)", schema = @Schema(implementation = TipoImovel.class))
+        @RequestParam(required = false) String tipo,
+        @Parameter(description = "Minimum area in square meters")
+        @RequestParam(required = false) Integer areaMin,
+        @Parameter(description = "Maximum area in square meters")
+        @RequestParam(required = false) Integer areaMax,
+        @Parameter(description = "Minimum total monthly price (rent + condo fee)")
+        @RequestParam(required = false) Double precoTotalMin,
+        @Parameter(description = "Maximum total monthly price (rent + condo fee)")
+        @RequestParam(required = false) Double precoTotalMax,
+        @Parameter(description = "List of required property characteristics (e.g., PISCINA, GARAGEM)")
+        @RequestParam(required = false) List<String> caracteristicas
+    ) {
+        List<AnuncioResponse> anuncios = anuncioService.search(tipo, areaMin, areaMax, precoTotalMin, precoTotalMax, caracteristicas)
+            .stream()
             .map(AnuncioResponse::convert)
             .collect(Collectors.toList());
         return ResponseEntity.ok(anuncios);
