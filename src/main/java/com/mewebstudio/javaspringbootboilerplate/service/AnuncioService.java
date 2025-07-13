@@ -9,6 +9,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.Objects;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,6 +29,7 @@ import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
 import com.mewebstudio.javaspringbootboilerplate.repository.AnuncioRepository;
 import com.mewebstudio.javaspringbootboilerplate.repository.ImovelRepository;
 import com.mewebstudio.javaspringbootboilerplate.repository.UserRepository;
+import com.mewebstudio.javaspringbootboilerplate.service.specification.AnuncioSpecification;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -111,6 +113,53 @@ public class AnuncioService {
     @Transactional(readOnly = true)
     public List<Anuncio> findAll() {
         return anuncioRepository.findAllWithImovelAndCaracteristicas();
+    }
+
+    /**
+     * Busca anúncios com base em critérios de filtro.
+     *
+     * @param tipoImovel    O tipo do imóvel.
+     * @param areaMin       A área mínima do imóvel.
+     * @param areaMax       A área máxima do imóvel.
+     * @param precoTotalMin O preço total (aluguel + condomínio) mínimo.
+     * @param precoTotalMax O preço total (aluguel + condomínio) máximo.
+     * @param caracteristicas A lista de características do imóvel.
+     * @return Uma lista de anúncios que correspondem aos filtros.
+     */
+    @Transactional(readOnly = true)
+    public List<Anuncio> search(String tipoImovel, Integer areaMin, Integer areaMax, Double precoTotalMin, Double precoTotalMax, List<String> caracteristicas) {
+        Specification<Anuncio> spec = Specification.where(null);
+
+        if (tipoImovel != null && !tipoImovel.isBlank()) {
+            try {
+                spec = spec.and(AnuncioSpecification.porTipo(TipoImovel.valueOf(tipoImovel.toUpperCase())));
+            } catch (IllegalArgumentException e) {
+                // Ignora tipo inválido 
+            }
+        }
+
+        if (areaMin != null || areaMax != null) {
+            spec = spec.and(AnuncioSpecification.porArea(areaMin, areaMax));
+        }
+
+        if (precoTotalMin != null || precoTotalMax != null) {
+            spec = spec.and(AnuncioSpecification.porPrecoTotal(precoTotalMin, precoTotalMax));
+        }
+
+        if (caracteristicas != null && !caracteristicas.isEmpty()) {
+            try {
+                List<Caracteristica> caracteristicaEnums = caracteristicas.stream()
+                    .map(String::toUpperCase)
+                    .map(Caracteristica::valueOf)
+                    .collect(Collectors.toList());
+                spec = spec.and(AnuncioSpecification.porCaracteristicas(caracteristicaEnums));
+            } catch (IllegalArgumentException e) {
+                // Ignora características inválidas para não quebrar a busca.
+                log.warn("Busca com característica inválida ignorada: {}", e.getMessage());
+            }
+        }
+
+        return anuncioRepository.findAll(spec);
     }
 
     /**
