@@ -71,6 +71,7 @@ public class AnuncioService {
             .qtdQuartos(request.getQtdQuartos())
             .qtdBanheiros(request.getQtdBanheiros())
             .area(request.getArea())
+            .vagas(request.getVagas())
             .dataDisponibilidade(request.getDataDisponibilidade())
             .cep(request.getCep())
             .cidade(request.getCidade())
@@ -373,5 +374,22 @@ public class AnuncioService {
         log.info("Anúncio [{}] teve seu status alterado para: {}", anuncioId, novoStatus ? "PAUSADO" : "ATIVO");
 
         return novoStatus;
+    }
+
+    public Anuncio updateVagas(UUID anuncioId, Integer vagas) {
+        User currentUser = userService.getUser();
+        Anuncio anuncio = anuncioRepository.findByIdWithImovelAndCaracteristicas(anuncioId)
+                .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + anuncioId));
+
+        if (!anuncio.getAnunciante().getId().equals(currentUser.getId())) {
+            throw new ForbiddenException("Você não tem permissão para editar este anúncio.");
+        }
+
+        // Atualiza o número de vagas
+        Imovel imovel = anuncio.getImovel();
+        imovel.setVagas(vagas);
+        imovelRepository.save(imovel);
+
+        return anuncio;
     }
 }

@@ -238,4 +238,22 @@ public class AnuncioController {
         return ResponseEntity.ok(Map.of("paused", isPaused));
     }
 
+    //alterar quantidade de vagas de imovel do anuncio
+    @PatchMapping("/{id}/{vagas}")
+    @Operation(
+        summary = "Update parking spaces in an announcement",
+        description = "Updates the number of parking spaces available for a specific announcement. " +
+                      "Only the owner can perform this action.",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME)
+    )
+    public ResponseEntity<AnuncioResponse> updateVagas(
+        @Parameter(description = "ID of the announcement to update", required = true)
+        @PathVariable("id") UUID anuncioId,
+        @Parameter(description = "Number of vacancies to be established", required = true)
+        @PathVariable("vagas") Integer vagas
+    ) {
+        Anuncio updatedAnuncio = anuncioService.updateVagas(anuncioId, vagas);
+        return ResponseEntity.ok(AnuncioResponse.convert(updatedAnuncio));
+    }
+
 }

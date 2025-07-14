@@ -93,4 +93,7 @@ public class CreateAnuncioRequest {
     @Schema(description = "Lista de características do imóvel", example = "[\"MOBILIADO\", \"ACEITA_PETS\"]")
     private List<@ValueOfEnum(enumClass = Caracteristica.class) String> caracteristicas;
 
+    @Schema(description = "Número de vagas de garagem", example = "1")
+    private Integer vagas;
+
 }

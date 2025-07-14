@@ -38,6 +38,9 @@ public class Imovel extends AbstractBaseEntity {
     private String complemento;
     private String bairro;
 
+    @Builder.Default
+    private Integer vagas = 1;
+
     @Enumerated(EnumType.STRING)
     private TipoImovel tipo;
 

@@ -55,6 +55,9 @@ public class AnuncioResponse {
     @Schema(description = "Área do imóvel em m²", example = "55")
     private Integer area;
 
+    @Schema(description = "Quantidade de vagas de garagem", example = "1")
+    private Integer vagas;
+
     @Schema(description = "Data de disponibilidade do imóvel", example = "2025-08-01")
     private LocalDate dataDisponibilidade;
 
@@ -153,6 +156,7 @@ public class AnuncioResponse {
                 .area(imovel.getArea())
                 .dataDisponibilidade(imovel.getDataDisponibilidade())
                 .cep(imovel.getCep())
+                .vagas(imovel.getVagas())
                 .enderecoCompleto(enderecoBuilder.toString())
                 .caracteristicas(imovel.getCaracteristicas() != null ?
                     new ArrayList<>(imovel.getCaracteristicas().stream().map(Enum::name).collect(Collectors.toList())) : null)
