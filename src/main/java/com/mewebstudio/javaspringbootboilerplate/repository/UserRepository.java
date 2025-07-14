@@ -21,6 +21,14 @@ public interface UserRepository extends JpaRepository<User, UUID>, JpaSpecificat
     Optional<User> findByIdWithDetails(@Param("id") UUID id);
 
     @Query("SELECT DISTINCT u FROM User u " +
+           "LEFT JOIN FETCH u.anunciosFavoritos af " +
+           "LEFT JOIN FETCH af.imovel i " +
+           "LEFT JOIN FETCH i.caracteristicas " +
+           "LEFT JOIN FETCH i.fotos " +
+           "WHERE u.id = :userId")
+    Optional<User> findByIdWithFavoritosDetails(@Param("userId") UUID userId);
+
+    @Query("SELECT DISTINCT u FROM User u " +
        "LEFT JOIN FETCH u.roles " +
        "LEFT JOIN FETCH u.interesses " + 
        "JOIN u.anunciosFavoritos af " +
