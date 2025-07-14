@@ -1,13 +1,8 @@
 package com.mewebstudio.javaspringbootboilerplate.service;
 
 import java.io.IOException;
-import java.util.Base64;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.Objects;
 
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -71,7 +66,7 @@ public class AnuncioService {
             .qtdQuartos(request.getQtdQuartos())
             .qtdBanheiros(request.getQtdBanheiros())
             .area(request.getArea())
-            .vagas(request.getVagas())
+            .vagas(Optional.ofNullable(request.getVagas()).orElse(1))
             .dataDisponibilidade(request.getDataDisponibilidade())
             .cep(request.getCep())
             .cidade(request.getCidade())
