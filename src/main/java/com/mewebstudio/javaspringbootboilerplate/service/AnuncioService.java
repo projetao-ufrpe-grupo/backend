@@ -371,6 +371,7 @@ public class AnuncioService {
         return novoStatus;
     }
 
+    @Transactional
     public Anuncio updateVagas(UUID anuncioId, Integer vagas) {
         User currentUser = userService.getUser();
         Anuncio anuncio = anuncioRepository.findByIdWithImovelAndCaracteristicas(anuncioId)
@@ -387,4 +388,6 @@ public class AnuncioService {
 
         return anuncio;
     }
+
+
 }
