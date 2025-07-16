@@ -694,7 +694,7 @@ public class UserService {
     }
 
     public void attUser(User user, Anuncio anuncio) {
-        //verifique se o tamnho é maior que 10, se sim, remova o primeiro
+        //verifique se o tamanho é maior que 10, se sim, remova o primeiro
         if (user.getAnunciosVistosRecentemente().size() >= 10) {
             user.getAnunciosVistosRecentemente().remove(user.getAnunciosVistosRecentemente().iterator().next());
         }
