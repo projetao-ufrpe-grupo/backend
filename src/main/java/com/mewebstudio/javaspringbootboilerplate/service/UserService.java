@@ -1,5 +1,30 @@
 package com.mewebstudio.javaspringbootboilerplate.service;
 
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import org.springframework.validation.BeanPropertyBindingResult;
+import org.springframework.validation.BindException;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.RegisterRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.ResetPasswordRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.user.*;
@@ -17,7 +42,7 @@ import com.mewebstudio.javaspringbootboilerplate.repository.UserRepository;
 import com.mewebstudio.javaspringbootboilerplate.security.JwtUserDetails;
 import com.mewebstudio.javaspringbootboilerplate.util.Constants;
 import com.mewebstudio.javaspringbootboilerplate.util.PageRequestBuilder;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -602,12 +627,15 @@ public class UserService {
     /**
      * Gets the list of favorited announcements for the current user.
      *
-     * @return A set of favorited Anuncio entities.
+     * @return A list of favorited Anuncio entities.
      */
-    public Set<Anuncio> getAnunciosFavoritos() {
-        User usuario = getUser();
-        log.info("Fetching favorite announcements for user [{}]", usuario.getId());
-        return usuario.getAnunciosFavoritos();
+    @Transactional(readOnly = true)
+    public List<Anuncio> getAnunciosFavoritos() {
+        User currentUser = getUser();
+        User userWithFavorites = userRepository.findByIdWithFavoritosDetails(currentUser.getId())
+            .orElse(currentUser); 
+        
+        return new ArrayList<>(userWithFavorites.getAnunciosFavoritos());
     }
 
     /**
