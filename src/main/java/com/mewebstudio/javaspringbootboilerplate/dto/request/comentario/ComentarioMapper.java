@@ -12,7 +12,7 @@ public class ComentarioMapper {
         return ComentarioResponseDTO.builder()
                 .id(comentario.getId())
                 .texto(comentario.getTexto())
-                .autor(comentario.getAutor().getName())
+                .autor(comentario.getAutor() != null ? comentario.getAutor().getName() : null)
                 .criadoEm(comentario.getCreatedAt())
                 .respostas(
                         comentario.getRespostas().stream()
