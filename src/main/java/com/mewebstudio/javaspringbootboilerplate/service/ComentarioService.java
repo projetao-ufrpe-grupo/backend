@@ -62,7 +62,9 @@ public class ComentarioService {
         if (comentario.getAutor() == null && comentario.getTexto().equals("Este comentário foi excluído pelo autor.")) {
             throw new NotFoundException("Comentário já excluído.");
         } else {
-            assert comentario.getAutor() != null;
+            if (comentario.getAutor() == null) {
+                throw new NotFoundException("Autor do comentário não encontrado.");
+            }
             if (!comentario.getAutor().getEmail().equals(username)) {
                 throw new AccessDeniedException("Você não tem permissão para deletar este comentário.");
             }
