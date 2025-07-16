@@ -1,14 +1,25 @@
 package com.mewebstudio.javaspringbootboilerplate.service;
 
-import java.io.IOException;
-import java.time.LocalDateTime;
-import java.util.Base64;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.RegisterRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.ResetPasswordRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.request.user.*;
+import com.mewebstudio.javaspringbootboilerplate.entity.*;
+import com.mewebstudio.javaspringbootboilerplate.entity.specification.UserFilterSpecification;
+import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.PaginationCriteria;
+import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.UserCriteria;
+import com.mewebstudio.javaspringbootboilerplate.event.UserEmailVerificationSendEvent;
+import com.mewebstudio.javaspringbootboilerplate.event.UserPasswordResetSendEvent;
+import com.mewebstudio.javaspringbootboilerplate.exception.BadRequestException;
+import com.mewebstudio.javaspringbootboilerplate.exception.ForbiddenException;
+import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
+import com.mewebstudio.javaspringbootboilerplate.repository.AnuncioRepository;
+import com.mewebstudio.javaspringbootboilerplate.repository.UserRepository;
+import com.mewebstudio.javaspringbootboilerplate.security.JwtUserDetails;
+import com.mewebstudio.javaspringbootboilerplate.util.Constants;
+import com.mewebstudio.javaspringbootboilerplate.util.PageRequestBuilder;
+import jakarta.transaction.Transactional;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -25,36 +36,10 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.RegisterRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.auth.ResetPasswordRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.AbstractBaseCreateUserRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.AbstractBaseUpdateUserRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.CreateUserRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdatePasswordRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateProfileRequest;
-import com.mewebstudio.javaspringbootboilerplate.dto.request.user.UpdateUserRequest;
-import com.mewebstudio.javaspringbootboilerplate.entity.Anuncio;
-import com.mewebstudio.javaspringbootboilerplate.entity.InteressesUsuario;
-import com.mewebstudio.javaspringbootboilerplate.entity.PrivacidadePerfil;
-import com.mewebstudio.javaspringbootboilerplate.entity.TipoUsuario;
-import com.mewebstudio.javaspringbootboilerplate.entity.User;
-import com.mewebstudio.javaspringbootboilerplate.entity.specification.UserFilterSpecification;
-import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.PaginationCriteria;
-import com.mewebstudio.javaspringbootboilerplate.entity.specification.criteria.UserCriteria;
-import com.mewebstudio.javaspringbootboilerplate.event.UserEmailVerificationSendEvent;
-import com.mewebstudio.javaspringbootboilerplate.event.UserPasswordResetSendEvent;
-import com.mewebstudio.javaspringbootboilerplate.exception.BadRequestException;
-import com.mewebstudio.javaspringbootboilerplate.exception.ForbiddenException;
-import com.mewebstudio.javaspringbootboilerplate.exception.NotFoundException;
-import com.mewebstudio.javaspringbootboilerplate.repository.AnuncioRepository;
-import com.mewebstudio.javaspringbootboilerplate.repository.UserRepository;
-import com.mewebstudio.javaspringbootboilerplate.security.JwtUserDetails;
-import com.mewebstudio.javaspringbootboilerplate.util.Constants;
-import com.mewebstudio.javaspringbootboilerplate.util.PageRequestBuilder;
-
-import jakarta.transaction.Transactional;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -124,7 +109,7 @@ public class UserService {
      */
     public Page<User> findAll(UserCriteria criteria, PaginationCriteria paginationCriteria) {
         return userRepository.findAll(new UserFilterSpecification(criteria),
-            PageRequestBuilder.build(paginationCriteria));
+                PageRequestBuilder.build(paginationCriteria));
     }
 
     /**
@@ -135,8 +120,8 @@ public class UserService {
      */
     public User findById(UUID id) {
         return userRepository.findByIdWithDetails(id)
-            .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
-                new String[]{messageSourceService.get("user")})));
+                .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
+                        new String[]{messageSourceService.get("user")})));
     }
 
     /**
@@ -157,8 +142,8 @@ public class UserService {
      */
     public User findByEmail(final String email) {
         return userRepository.findByEmail(email)
-            .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
-                new String[]{messageSourceService.get("user")})));
+                .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
+                        new String[]{messageSourceService.get("user")})));
     }
 
     /**
@@ -170,8 +155,8 @@ public class UserService {
      */
     public UserDetails loadUserByEmail(final String email) {
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
-                new String[]{messageSourceService.get("user")})));
+                .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
+                        new String[]{messageSourceService.get("user")})));
 
         return JwtUserDetails.create(user);
     }
@@ -184,8 +169,8 @@ public class UserService {
      */
     public UserDetails loadUserById(final String id) {
         User user = userRepository.findById(UUID.fromString(id))
-            .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
-                new String[]{messageSourceService.get("user")})));
+                .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
+                        new String[]{messageSourceService.get("user")})));
 
         return JwtUserDetails.create(user);
     }
@@ -231,7 +216,7 @@ public class UserService {
 
         User user = createUser(request);
         request.getRoles().forEach(role -> user.getRoles()
-            .add(roleService.findByName(Constants.RoleEnum.get(role))));
+                .add(roleService.findByName(Constants.RoleEnum.get(role))));
 
         if (request.getIsEmailVerified() != null && request.getIsEmailVerified()) {
             user.setEmailVerifiedAt(LocalDateTime.now());
@@ -266,8 +251,8 @@ public class UserService {
 
         if (request.getRoles() != null) {
             user.setRoles(request.getRoles().stream()
-                .map(role -> roleService.findByName(Constants.RoleEnum.get(role)))
-                .collect(Collectors.toList()));
+                    .map(role -> roleService.findByName(Constants.RoleEnum.get(role)))
+                    .collect(Collectors.toList()));
         }
 
         if (request.getIsEmailVerified() != null) {
@@ -304,12 +289,12 @@ public class UserService {
         BindingResult bindingResult = new BeanPropertyBindingResult(request, "request");
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             bindingResult.addError(new FieldError(bindingResult.getObjectName(), "oldPassword",
-                messageSourceService.get("invalid_old_password")));
+                    messageSourceService.get("invalid_old_password")));
         }
 
         if (request.getOldPassword().equals(request.getPassword())) {
             bindingResult.addError(new FieldError(bindingResult.getObjectName(), "password",
-                messageSourceService.get("same_password_error")));
+                    messageSourceService.get("same_password_error")));
         }
 
         if (bindingResult.hasErrors()) {
@@ -326,7 +311,7 @@ public class UserService {
     /**
      * Reset password.
      *
-     * @param token String
+     * @param token   String
      * @param request ResetPasswordRequest
      */
     public void resetPassword(String token, ResetPasswordRequest request) {
@@ -376,8 +361,8 @@ public class UserService {
     public void sendEmailPasswordResetMail(String email) {
         log.info("Sending password reset mail to email: {}", email);
         User user = userRepository.findByEmail(email)
-            .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
-                new String[]{messageSourceService.get("user")})));
+                .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
+                        new String[]{messageSourceService.get("user")})));
 
         passwordResetEventPublisher(user);
         log.info("Password reset mail sent to email: {}", email);
@@ -401,20 +386,20 @@ public class UserService {
     private User createUser(AbstractBaseCreateUserRequest request) throws BindException {
         BindingResult bindingResult = new BeanPropertyBindingResult(request, "request");
         userRepository.findByEmail(request.getEmail())
-            .ifPresent(user -> {
-                log.error("User with email: {} already exists", request.getEmail());
-                bindingResult.addError(new FieldError(bindingResult.getObjectName(), "email",
-                    messageSourceService.get("unique_email")));
-            });
+                .ifPresent(user -> {
+                    log.error("User with email: {} already exists", request.getEmail());
+                    bindingResult.addError(new FieldError(bindingResult.getObjectName(), "email",
+                            messageSourceService.get("unique_email")));
+                });
 
         if (bindingResult.hasErrors()) {
             throw new BindException(bindingResult);
         }
 
         User.UserBuilder userBuilder = User.builder()
-            .email(request.getEmail())
-            .password(passwordEncoder.encode(request.getPassword()))
-            .name(request.getName()); 
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .name(request.getName());
 
         if (StringUtils.hasText(request.getTipoUsuario())) {
             userBuilder.tipoUsuario(TipoUsuario.valueOf(request.getTipoUsuario()));
@@ -433,9 +418,9 @@ public class UserService {
     private User updateUser(User user, AbstractBaseUpdateUserRequest request) throws BindException {
         BindingResult bindingResult = new BeanPropertyBindingResult(request, "request");
         if (!user.getEmail().equals(request.getEmail()) &&
-            userRepository.existsByEmailAndIdNot(request.getEmail(), user.getId())) {
+                userRepository.existsByEmailAndIdNot(request.getEmail(), user.getId())) {
             bindingResult.addError(new FieldError(bindingResult.getObjectName(), "email",
-                messageSourceService.get("already_exists")));
+                    messageSourceService.get("already_exists")));
         }
 
         boolean isRequiredEmailVerification = false;
@@ -487,7 +472,7 @@ public class UserService {
             userRepository.findByEmail(request.getEmail()).ifPresent(existingUser -> {
                 if (!existingUser.getId().equals(user.getId())) {
                     bindingResult.addError(new FieldError(bindingResult.getObjectName(), "email",
-                        messageSourceService.get("unique_email")));
+                            messageSourceService.get("unique_email")));
                 }
             });
             if (!bindingResult.hasFieldErrors("email")) {
@@ -516,7 +501,7 @@ public class UserService {
                 }
             } catch (IllegalArgumentException e) {
                 bindingResult.addError(new FieldError(bindingResult.getObjectName(), "tipoUsuario",
-                    messageSourceService.get("invalid_enum_value", new String[]{request.getTipoUsuario()})));
+                        messageSourceService.get("invalid_enum_value", new String[]{request.getTipoUsuario()})));
             }
         }
 
@@ -538,10 +523,10 @@ public class UserService {
         // Atualizar os interesses do usuário
         if (request.getInteresses() != null) {
             user.setInteresses(
-                request.getInteresses().stream()
-                    .map(String::toUpperCase)
-                    .map(InteressesUsuario::valueOf)
-                    .collect(Collectors.toSet())
+                    request.getInteresses().stream()
+                            .map(String::toUpperCase)
+                            .map(InteressesUsuario::valueOf)
+                            .collect(Collectors.toSet())
             );
         }
 
@@ -566,6 +551,7 @@ public class UserService {
 
     /**
      * Updates the profile photo for the current user.
+     *
      * @param file The image file to upload.
      * @throws IOException if an I/O error occurs.
      */
@@ -593,8 +579,8 @@ public class UserService {
     public boolean alternarAnuncioFavorito(UUID anuncioId) {
         User usuario = getUser();
         Anuncio anuncio = anuncioRepository.findById(anuncioId)
-            .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
-                new String[]{"Anúncio"})));
+                .orElseThrow(() -> new NotFoundException(messageSourceService.get("not_found_with_param",
+                        new String[]{"Anúncio"})));
 
         boolean favoritado;
         if (usuario.getAnunciosFavoritos().contains(anuncio)) {
@@ -649,13 +635,13 @@ public class UserService {
      *
      * @param id UUID
      * @return User
-     * @throws NotFoundException if user not found
+     * @throws NotFoundException  if user not found
      * @throws ForbiddenException if user profile is private or access is restricted
      */
     public User findByIdWithPrivacyCheck(UUID id) {
         User targetUser = findById(id);
         User currentUser = null;
-        
+
         try {
             currentUser = getUser();
         } catch (BadCredentialsException e) {
@@ -671,15 +657,15 @@ public class UserService {
         switch (targetUser.getPrivacidadePerfil()) {
             case PRIVADO:
                 throw new ForbiddenException(messageSourceService.get("profile_is_private"));
-            
+
             case APENAS_LOCADORES:
-                if (currentUser == null || 
-                    currentUser.getRoles().stream()
-                        .noneMatch(role -> role.getName().name().equals("LOCADOR"))) {
+                if (currentUser == null ||
+                        currentUser.getRoles().stream()
+                                .noneMatch(role -> role.getName().name().equals("LOCADOR"))) {
                     throw new ForbiddenException(messageSourceService.get("profile_only_visible_to_locadores"));
                 }
                 break;
-            
+
             case PUBLICO:
             default:
                 // Permite acesso
@@ -702,8 +688,17 @@ public class UserService {
             user.setPrivacidadePerfil(novaPrivacidade);
             return userRepository.save(user);
         } catch (IllegalArgumentException e) {
-            throw new BadRequestException(messageSourceService.get("invalid_enum_value", 
-                new String[]{privacidadePerfil}));
+            throw new BadRequestException(messageSourceService.get("invalid_enum_value",
+                    new String[]{privacidadePerfil}));
         }
+    }
+
+    public void attUser(User user, Anuncio anuncio) {
+        //verifique se o tamnho é maior que 10, se sim, remova o primeiro
+        if (user.getAnunciosVistosRecentemente().size() >= 10) {
+            user.getAnunciosVistosRecentemente().remove(user.getAnunciosVistosRecentemente().iterator().next());
+        }
+        user.getAnunciosVistosRecentemente().add(anuncio);
+        userRepository.save(user);
     }
 }

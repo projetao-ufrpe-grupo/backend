@@ -167,7 +167,7 @@ public class AnuncioController {
         summary = "Get announcement details by ID",
         description = "Returns the full details of a specific announcement."
     )
-    @Transactional(readOnly = true)
+    @Transactional()
     public ResponseEntity<AnuncioResponse> getAnuncioById(
         @Parameter(description = "ID of the announcement to retrieve", required = true)
         @PathVariable("id") UUID anuncioId
@@ -238,7 +238,6 @@ public class AnuncioController {
         return ResponseEntity.ok(Map.of("paused", isPaused));
     }
 
-    //alterar quantidade de vagas de imovel do anuncio
     @PatchMapping("/{id}/{vagas}")
     @Operation(
         summary = "Update parking spaces in an announcement",
@@ -254,6 +253,17 @@ public class AnuncioController {
     ) {
         Anuncio updatedAnuncio = anuncioService.updateVagas(anuncioId, vagas);
         return ResponseEntity.ok(AnuncioResponse.convert(updatedAnuncio));
+    }
+
+    @GetMapping("/recent")
+    @Operation(
+        summary = "List recently viewed announcements",
+        description = "Returns a list of announcements that the user has viewed recently.",
+        security = @SecurityRequirement(name = SECURITY_SCHEME_NAME)
+    )
+    public ResponseEntity<List<AnuncioResponse>> getRecentAnuncios() {
+        List<AnuncioResponse> recentAnuncios = anuncioService.getRecentAnuncios();
+        return ResponseEntity.ok(recentAnuncios);
     }
 
 }
