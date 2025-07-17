@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <!--
+        ChangeSet 1: Cria a nova tabela 'comentario' para armazenar os comentários dos anúncios.
+        Esta tabela inclui colunas para o texto, e chaves estrangeiras para o autor (user),
+        o anúncio ao qual pertence, e um possível comentário pai (para respostas aninhadas).
+    -->
+    <changeSet id="005-create-comentario-table" author="Lucas Xavier">
+        <createTable tableName="comentario">
+            <column name="id" type="UUID">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="updated_at" type="TIMESTAMP WITHOUT TIME ZONE"/>
+            <column name="texto" type="TEXT"/>
+            <column name="autor_id" type="UUID">
+                <constraints foreignKeyName="fk_comentario_autor" referencedTableName="users" referencedColumnNames="id"/>
+            </column>
+            <column name="anuncio_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_comentario_anuncio" referencedTableName="anuncio" referencedColumnNames="id"/>
+            </column>
+            <column name="comentario_pai_id" type="UUID">
+                <constraints foreignKeyName="fk_comentario_pai" referencedTableName="comentario" referencedColumnNames="id"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!--
+        ChangeSet 2: Cria a tabela de junção 'user_anuncios_vistos' para a relação Many-to-Many
+        entre User e Anuncio, registrando os anúncios que um usuário visualizou recentemente.
+    -->
+    <changeSet id="005-create-user-anuncios-vistos-table" author="Lucas Xavier">
+        <createTable tableName="user_anuncios_vistos">
+            <column name="user_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_vistos_user" referencedTableName="users" referencedColumnNames="id" deleteCascade="true"/>
+            </column>
+            <column name="anuncio_id" type="UUID">
+                <constraints nullable="false" foreignKeyName="fk_vistos_anuncio" referencedTableName="anuncio" referencedColumnNames="id" deleteCascade="true"/>
+            </column>
+        </createTable>
+        <addPrimaryKey tableName="user_anuncios_vistos" columnNames="user_id, anuncio_id"/>
+    </changeSet>
+
+</databaseChangeLog>
