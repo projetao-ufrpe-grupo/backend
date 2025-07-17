@@ -49,4 +49,6 @@ public interface AnuncioRepository extends JpaRepository<Anuncio, UUID>, JpaSpec
     @Override
     @EntityGraph(value = "anuncio-with-details", type = EntityGraph.EntityGraphType.LOAD)
     List<Anuncio> findAll(Specification<Anuncio> spec);
+
+    Optional<Anuncio> findById(UUID id);
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.mewebstudio.javaspringbootboilerplate.dto.response.AnuncioResponse;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -165,10 +166,18 @@ public class AnuncioService {
      * @return A entidade Anuncio encontrada.
      * @throws NotFoundException se nenhum anúncio for encontrado com o ID fornecido.
      */
-    @Transactional(readOnly = true)
+    @Transactional()
     public Anuncio findById(UUID id) {
-        return anuncioRepository.findByIdWithImovelAndCaracteristicas(id)
+
+        Anuncio anuncio = anuncioRepository.findByIdWithImovelAndCaracteristicas(id)
             .orElseThrow(() -> new NotFoundException("Anúncio não encontrado com o ID: " + id));
+
+        // Adiciona o anúncio aos vistos recentemente do usuário
+        User currentUser = userService.getUser();
+        if (currentUser != null && !currentUser.getAnunciosVistosRecentemente().contains(anuncio)) {
+            userService.attUser(currentUser,anuncio); // Salva o usuário para persistir a lista de vistos recentemente
+        }
+        return anuncio;
     }
 
     /**
@@ -371,6 +380,7 @@ public class AnuncioService {
         return novoStatus;
     }
 
+    @Transactional
     public Anuncio updateVagas(UUID anuncioId, Integer vagas) {
         User currentUser = userService.getUser();
         Anuncio anuncio = anuncioRepository.findByIdWithImovelAndCaracteristicas(anuncioId)
@@ -386,5 +396,13 @@ public class AnuncioService {
         imovelRepository.save(imovel);
 
         return anuncio;
+    }
+
+    @Transactional
+    public List<AnuncioResponse> getRecentAnuncios() {
+        User currentUser = userService.getUser();
+        return currentUser.getAnunciosVistosRecentemente().stream()
+                .filter(a -> !a.isPausado()).map(AnuncioResponse::convert)
+                .toList();
     }
 }

@@ -1,10 +1,7 @@
 package com.mewebstudio.javaspringbootboilerplate.entity;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.CollectionTable;
@@ -131,6 +128,15 @@ public class User extends AbstractBaseEntity {
     @Column(name = "privacidade_perfil")
     @Builder.Default
     private PrivacidadePerfil privacidadePerfil = PrivacidadePerfil.PUBLICO;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_anuncios_vistos",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "anuncio_id")
+    )
+    @Builder.Default
+    private Set<Anuncio> anunciosVistosRecentemente = new LinkedHashSet<>();
 
     /**
      * Get full name of user.

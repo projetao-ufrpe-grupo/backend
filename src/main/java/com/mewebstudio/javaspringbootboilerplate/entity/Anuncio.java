@@ -1,12 +1,10 @@
 package com.mewebstudio.javaspringbootboilerplate.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.NamedAttributeNode;
-import jakarta.persistence.NamedEntityGraph;
-import jakarta.persistence.NamedSubgraph;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -43,4 +41,7 @@ public class Anuncio extends AbstractBaseEntity {
 
     @OneToOne
     private Imovel imovel;
+
+    @OneToMany(mappedBy = "anuncio", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Comentario> comentarios = new ArrayList<>();
 }
