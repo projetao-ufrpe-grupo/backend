@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="006-add-lat-lon-to-imovel-table" author="Lucas Xavier">
+        <addColumn tableName="imovel">
+            <column name="latitude" type="DOUBLE"/>
+        </addColumn>
+        <addColumn tableName="imovel">
+            <column name="longitude" type="DOUBLE"/>
+        </addColumn>
+    </changeSet>
+
+</databaseChangeLog>

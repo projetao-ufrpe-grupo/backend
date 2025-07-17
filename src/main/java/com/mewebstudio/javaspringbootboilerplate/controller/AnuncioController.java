@@ -28,6 +28,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.CreateAnuncioRequest;
 import com.mewebstudio.javaspringbootboilerplate.dto.request.anuncio.UpdateAnuncioRequest;
+import com.mewebstudio.javaspringbootboilerplate.dto.response.AnuncioMapaResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.AnuncioResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.ErrorResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.response.user.UserResponse;
@@ -112,6 +113,18 @@ public class AnuncioController {
             .map(AnuncioResponse::convert)
             .collect(Collectors.toList());
         return ResponseEntity.ok(anuncios);
+    }
+
+    @GetMapping("/mapa")
+    @Operation(
+        summary = "Get announcements for map view",
+        description = "Returns a lightweight list of active announcements with coordinates for map display."
+    )
+    public ResponseEntity<List<AnuncioMapaResponse>> getAnunciosParaMapa() {
+        List<AnuncioMapaResponse> anunciosParaMapa = anuncioService.findAllForMap().stream()
+                .map(AnuncioMapaResponse::convert)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(anunciosParaMapa);
     }
 
     @GetMapping("/{id}/favoritos")

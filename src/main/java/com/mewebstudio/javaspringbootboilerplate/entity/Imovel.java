@@ -32,6 +32,12 @@ public class Imovel extends AbstractBaseEntity {
     private String complemento;
     private String bairro;
 
+    @Column(name = "latitude")
+    private Double latitude;
+
+    @Column(name = "longitude")
+    private Double longitude;
+
     @Builder.Default
     private Integer vagas = 1;
 
