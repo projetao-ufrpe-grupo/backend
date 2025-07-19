@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="007-update-null-privacidade-perfil-to-publico" author="Lucas Xavier">
+        <comment>
+            Atualiza a privacidade de perfil dos usuários existentes que estão com valor NULL 
+            para PUBLICO.
+        </comment>
+        <update tableName="users">
+            <column name="privacidade_perfil" value="PUBLICO"/>
+            <where>privacidade_perfil IS NULL</where>
+        </update>
+    </changeSet>
+
+</databaseChangeLog>

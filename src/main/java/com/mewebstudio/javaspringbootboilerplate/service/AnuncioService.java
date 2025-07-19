@@ -405,4 +405,13 @@ public class AnuncioService {
                 .filter(a -> !a.isPausado()).map(AnuncioResponse::convert)
                 .toList();
     }
+
+    /**
+     * Busca todos os anúncios ativos que possuem coordenadas para exibição no mapa.
+     * @return Uma lista de anúncios para o mapa.
+     */
+    @Transactional(readOnly = true)
+    public List<Anuncio> findAllForMap() {
+        return anuncioRepository.findAllForMap();
+    }
 }

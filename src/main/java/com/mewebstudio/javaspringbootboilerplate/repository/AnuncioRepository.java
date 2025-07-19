@@ -50,5 +50,8 @@ public interface AnuncioRepository extends JpaRepository<Anuncio, UUID>, JpaSpec
     @EntityGraph(value = "anuncio-with-details", type = EntityGraph.EntityGraphType.LOAD)
     List<Anuncio> findAll(Specification<Anuncio> spec);
 
+    @Query("SELECT a FROM Anuncio a JOIN FETCH a.imovel WHERE a.pausado = false AND a.imovel.latitude IS NOT NULL AND a.imovel.longitude IS NOT NULL")
+    List<Anuncio> findAllForMap();
+
     Optional<Anuncio> findById(UUID id);
 }
