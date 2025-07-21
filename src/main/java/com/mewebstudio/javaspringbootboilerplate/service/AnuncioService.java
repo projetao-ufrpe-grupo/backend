@@ -124,8 +124,12 @@ public class AnuncioService {
      * @return Uma lista de anúncios que correspondem aos filtros.
      */
     @Transactional(readOnly = true)
-    public List<Anuncio> search(String tipoImovel, Integer areaMin, Integer areaMax, Double precoTotalMin, Double precoTotalMax, List<String> caracteristicas) {
+    public List<Anuncio> search(String titulo, String tipoImovel, Integer areaMin, Integer areaMax, Double precoTotalMin, Double precoTotalMax, List<String> caracteristicas) {
         Specification<Anuncio> spec = Specification.where(null);
+
+        if (titulo != null && !titulo.isBlank()) {
+            spec = spec.and(AnuncioSpecification.porTitulo(titulo));
+        }
 
         if (tipoImovel != null && !tipoImovel.isBlank()) {
             try {

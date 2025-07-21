@@ -95,6 +95,8 @@ public class AnuncioController {
         description = "Returns a list of announcements based on the provided filter criteria. All filters are optional."
     )
     public ResponseEntity<List<AnuncioResponse>> searchAnuncios(
+        @Parameter(description = "Search term to filter by announcement title/description")
+        @RequestParam(required = false) String titulo,
         @Parameter(description = "Type of property (e.g., APARTAMENTO, CASA)", schema = @Schema(implementation = TipoImovel.class))
         @RequestParam(required = false) String tipo,
         @Parameter(description = "Minimum area in square meters")
@@ -108,7 +110,7 @@ public class AnuncioController {
         @Parameter(description = "List of required property characteristics (e.g., PISCINA, GARAGEM)")
         @RequestParam(required = false) List<String> caracteristicas
     ) {
-        List<AnuncioResponse> anuncios = anuncioService.search(tipo, areaMin, areaMax, precoTotalMin, precoTotalMax, caracteristicas)
+        List<AnuncioResponse> anuncios = anuncioService.search(titulo, tipo, areaMin, areaMax, precoTotalMin, precoTotalMax, caracteristicas)
             .stream()
             .map(AnuncioResponse::convert)
             .collect(Collectors.toList());
