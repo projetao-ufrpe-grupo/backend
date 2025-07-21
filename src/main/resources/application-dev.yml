@@ -9,6 +9,8 @@ server:
 app:
   secret: ${APP_SECRET:c04nKbDFfJ2v0XSRtNKHQQq5Km3zMSZxla7paMSUzBOI/ORhgnTC7eJrqqEZQGKm}
 spring:
+  jackson:
+    time-zone: America/Sao_Paulo
   application:
     name: ${APP_NAME:DEV-UniHome}
     description: ${APP_DESCRIPTION:Profile de DEV}
@@ -17,11 +19,14 @@ spring:
       ddl-auto: ${DB_DDL_AUTO:update}
     properties:
       hibernate:
+        jdbc:
+          time_zone: America/Sao_Paulo
         dialect: org.hibernate.dialect.PostgreSQLDialect
         show_sql: true
         format_sql: true
         globally_quoted_identifiers: true
     open-in-view: false
+    show-sql: true
   datasource:
     url: jdbc:postgresql://turntable.proxy.rlwy.net:29190/railway
     username: postgres
