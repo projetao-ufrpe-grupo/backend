@@ -26,11 +26,11 @@ public class ChatController {
             description = "Retorna as mensagens trocadas entre dois usuários, com suporte a paginação. Requer autenticação via token JWT.",
             security = @SecurityRequirement(name = "bearerAuth") // ou o nome que você configurou
     )
-    public ResponseEntity<Page<ChatMessageDTO>> getMessages(@RequestParam String user1,
-                                                            @RequestParam String user2,
+    public ResponseEntity<Page<ChatMessageDTO>> getMessages(@RequestParam String fromUserId,
+                                                            @RequestParam String toUserId,
                                                             @RequestParam(defaultValue = "0") int page,
                                                             @RequestParam(defaultValue = "20") int size) {
-        Page<ChatMessageDTO> messages = chatService.getConversation(user1, user2, page, size);
+        Page<ChatMessageDTO> messages = chatService.getConversation(fromUserId, toUserId, page, size);
         return ResponseEntity.ok(messages);
 
     }
