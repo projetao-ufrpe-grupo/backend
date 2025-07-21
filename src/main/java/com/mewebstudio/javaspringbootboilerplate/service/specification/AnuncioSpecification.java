@@ -15,6 +15,26 @@ import org.springframework.data.jpa.domain.Specification;
 public final class AnuncioSpecification {
 
     /**
+     * Retorna uma Specification para filtrar pelo título/descrição do anúncio.
+     * A busca é case-insensitive e procura pelo termo em qualquer parte da descrição do imóvel.
+     * @param titulo O termo a ser buscado.
+     * @return Specification para o filtro.
+     */
+    public static Specification<Anuncio> porTitulo(String titulo) {
+        return (root, query, criteriaBuilder) -> {
+            if (titulo == null || titulo.isBlank()) {
+                return criteriaBuilder.conjunction();
+            }
+            Join<Anuncio, Imovel> imovelJoin = root.join("imovel");
+            // Usa lower para busca case-insensitive e like para busca parcial
+            return criteriaBuilder.like(
+                criteriaBuilder.lower(imovelJoin.get("descricao")),
+                "%" + titulo.toLowerCase() + "%"
+            );
+        };
+    }
+
+    /**
      * Retorna uma Specification para filtrar por tipo de imóvel.
      * @param tipoImovel O tipo do imóvel.
      * @return Specification para o filtro.
