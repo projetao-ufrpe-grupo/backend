@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="008-create-chat-message-table" author="Lucas Xavier">
+        <comment>
+            Cria a tabela chat_messages para armazenar as mensagens trocadas entre usuários
+            no sistema de chat em tempo real.
+        </comment>
+        
+        <createTable tableName="chat_messages">
+            <column name="id" type="BIGSERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            
+            <column name="from_user" type="UUID">
+                <constraints nullable="false" 
+                           foreignKeyName="fk_chat_from_user" 
+                           referencedTableName="users" 
+                           referencedColumnNames="id"/>
+            </column>
+            
+            <column name="to_user" type="UUID">
+                <constraints nullable="false" 
+                           foreignKeyName="fk_chat_to_user" 
+                           referencedTableName="users" 
+                           referencedColumnNames="id"/>
+            </column>
+            
+            <column name="content" type="TEXT">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="type" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="sent_at" type="TIMESTAMP WITH TIME ZONE">
+                <constraints nullable="false"/>
+            </column>
+            
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <!-- Índices para otimizar as consultas de chat -->
+        <createIndex tableName="chat_messages" indexName="idx_chat_messages_from_user">
+            <column name="from_user"/>
+        </createIndex>
+        
+        <createIndex tableName="chat_messages" indexName="idx_chat_messages_to_user">
+            <column name="to_user"/>
+        </createIndex>
+        
+        <createIndex tableName="chat_messages" indexName="idx_chat_messages_sent_at">
+            <column name="sent_at"/>
+        </createIndex>
+        
+        <!-- Índice composto para otimizar consultas de conversas entre dois usuários -->
+        <createIndex tableName="chat_messages" indexName="idx_chat_conversation">
+            <column name="from_user"/>
+            <column name="to_user"/>
+            <column name="sent_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

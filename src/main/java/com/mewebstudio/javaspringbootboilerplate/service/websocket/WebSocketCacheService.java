@@ -3,6 +3,7 @@ package com.mewebstudio.javaspringbootboilerplate.service.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mewebstudio.javaspringbootboilerplate.dto.ws.WebsocketIdentifier;
 import com.mewebstudio.javaspringbootboilerplate.dto.ws.WsRequestBody;
+import com.mewebstudio.javaspringbootboilerplate.repository.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -12,6 +13,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.socket.TextMessage;
 import java.io.IOException;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -19,6 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 @RequiredArgsConstructor
 public class WebSocketCacheService {
+    private final ChatMessageRepository chatMessageRepository;
     private static final Map<String, WebsocketIdentifier> USER_SESSION_CACHE = new ConcurrentHashMap<>();
 
     private static final String EXCEPTION_MESSAGE = "Exception while sending message: {}";
@@ -98,8 +102,9 @@ public class WebSocketCacheService {
             return;
         }
         requestBody.setType("private");
-        Instant now = Instant.now();
-        requestBody.setDate(now.toEpochMilli());
+        ZoneId zone = ZoneId.of("America/Sao_Paulo");
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(zone);
+        requestBody.setDate(zonedDateTime.toInstant().toEpochMilli());
         String payload;
         try {
             payload = objectMapper.writeValueAsString(requestBody);
@@ -107,6 +112,7 @@ public class WebSocketCacheService {
                 userTo.getSession().sendMessage(new TextMessage(payload));
                 log.info("Message successfully send to {}", userTo);
             }
+            this.chatMessageRepository.save(requestBody.transformToChatMessage());
         } catch (Exception e) {
             log.error(EXCEPTION_MESSAGE, ExceptionUtils.getMessage(e));
         }
