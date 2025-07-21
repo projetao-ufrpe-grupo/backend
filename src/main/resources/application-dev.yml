@@ -28,9 +28,9 @@ spring:
     open-in-view: false
     show-sql: true
   datasource:
-    url: jdbc:postgresql://turntable.proxy.rlwy.net:29190/railway
+    url: jdbc:postgresql://nozomi.proxy.rlwy.net:32315/railway
     username: postgres
-    password: KQzAkxQucQqXtwpSfUjBomtjDKAuNVHo
+    password: wzPcToVPsYqrbRmMGCbXsldFHrAdYciU
   mail:
     host: ${MAIL_HOST:localhost}
     port: ${MAIL_PORT:1025}
