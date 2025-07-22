@@ -19,7 +19,7 @@
         
         <!-- Define um valor padrão para as mensagens existentes -->
         <update tableName="chat_messages">
-            <column name="status" value="ENVIADA"/>
+            <column name="status" value="SENT"/>
             <where>status IS NULL</where>
         </update>
     </changeSet>
