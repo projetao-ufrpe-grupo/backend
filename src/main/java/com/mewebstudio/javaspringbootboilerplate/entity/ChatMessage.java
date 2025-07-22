@@ -34,7 +34,7 @@ public class ChatMessage {
     @Column(nullable = false)
     private OffsetDateTime sentAt;
 
-    // status opcional
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String status; // SENT, DELIVERED, READ
+    private MessageStatus status;
 }

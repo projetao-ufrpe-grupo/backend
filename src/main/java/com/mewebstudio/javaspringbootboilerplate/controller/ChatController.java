@@ -1,6 +1,7 @@
 package com.mewebstudio.javaspringbootboilerplate.controller;
 
 import com.mewebstudio.javaspringbootboilerplate.dto.response.ChatMessageDTO;
+import com.mewebstudio.javaspringbootboilerplate.dto.ws.ChatConversationDTO;
 import com.mewebstudio.javaspringbootboilerplate.service.ChatService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -12,6 +13,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 @Controller
 @RequestMapping("/chat")
@@ -32,7 +35,20 @@ public class ChatController {
                                                             @RequestParam(defaultValue = "20") int size) {
         Page<ChatMessageDTO> messages = chatService.getConversation(fromUserId, toUserId, page, size);
         return ResponseEntity.ok(messages);
+    }
 
+    @GetMapping("/conversations")
+    @Operation(
+            summary = "Buscar todas as conversas do usuário",
+            description = """
+                        Retorna as últimas mensagens de todas as conversas em que o usuário autenticado participou, agrupadas por parceiro de chat.
+                        Cada bloco inclui os dois participantes e uma lista das mensagens mais recentes trocadas entre eles.
+                        Requer autenticação via token JWT.
+                    """,
+            security = @SecurityRequirement(name = "bearerAuth") // Altere o nome caso tenha usado outro esquema no SwaggerConfig
+    )
+    public ResponseEntity<List<ChatConversationDTO>> getAllChatsForUser(@RequestParam(defaultValue = "0") int limit ) {
+        return ResponseEntity.ok(chatService.getChatConversationsForUser(limit));
     }
 
 }

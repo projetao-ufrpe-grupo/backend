@@ -2,6 +2,7 @@ package com.mewebstudio.javaspringbootboilerplate.service.websocket;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mewebstudio.javaspringbootboilerplate.dto.ws.WebsocketIdentifier;
+import com.mewebstudio.javaspringbootboilerplate.dto.ws.WsAckResponse;
 import com.mewebstudio.javaspringbootboilerplate.dto.ws.WsRequestBody;
 import com.mewebstudio.javaspringbootboilerplate.exception.BadRequestException;
 import com.mewebstudio.javaspringbootboilerplate.security.JwtTokenProvider;
@@ -14,7 +15,10 @@ import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.AbstractWebSocketHandler;
+
+import java.io.IOException;
 import java.net.URI;
+
 import static com.mewebstudio.javaspringbootboilerplate.util.Constants.getTokenFromPath;
 
 @Slf4j
@@ -55,7 +59,7 @@ public class WebsocketChannelHandler extends AbstractWebSocketHandler {
     /**
      * A method that is called when a WebSocket session is closed.
      * @param session The WebSocket session that is closed.
-     * @param status The status of the close.
+     * @param status  The status of the close.
      */
     @Override
     public void afterConnectionClosed(@NonNull final WebSocketSession session, @NonNull final CloseStatus status) {
@@ -83,7 +87,7 @@ public class WebsocketChannelHandler extends AbstractWebSocketHandler {
      * @param message The message received.
      */
     @Override
-    public void handleTextMessage(@NonNull final WebSocketSession session, @NonNull final TextMessage message) {
+    public void handleTextMessage(@NonNull final WebSocketSession session, @NonNull final TextMessage message) throws IOException {
         try {
             final String uri = getUri(session);
             if (uri == null) {
@@ -103,7 +107,17 @@ public class WebsocketChannelHandler extends AbstractWebSocketHandler {
                 session.sendMessage(new TextMessage(messageTypeShouldBeProvided));
                 throw new BadRequestException(messageTypeShouldBeProvided);
             }
+
+            if (requestBody.getMessageId() == null) {
+                String messageTypeShouldBeProvided = "Id should be provided";
+                log.error(messageTypeShouldBeProvided);
+                session.sendMessage(new TextMessage(messageTypeShouldBeProvided));
+                throw new BadRequestException(messageTypeShouldBeProvided);
+            }
+
             if (requestBody.getType().equals("private")) {
+                sendAck(requestBody, session);
+                requestBody.setMessageId(null);
                 webSocketCacheService.sendPrivateMessage(requestBody);
             } else {
                 String messageTypeShouldBeProvided = "Invalid ws message type: " + requestBody.getType();
@@ -113,8 +127,22 @@ public class WebsocketChannelHandler extends AbstractWebSocketHandler {
             }
             log.info("Websocket message sent: {}", message.getPayload());
         } catch (Throwable ex) {
+            String messageTypeShouldBeProvided = ex.getMessage();
+            log.error(messageTypeShouldBeProvided);
+            session.sendMessage(new TextMessage(messageTypeShouldBeProvided));
             log.error("A serious error has occurred with incoming websocket text message handling. Exception is: ", ex);
+            throw new BadRequestException(messageTypeShouldBeProvided);
         }
+    }
+
+    private void sendAck(WsRequestBody requestBody, WebSocketSession session) throws IOException {
+        WsAckResponse ack = new WsAckResponse();
+        ack.setMessageId(requestBody.getMessageId());
+        ack.setType("ACK");
+        ack.setAckAt(System.currentTimeMillis());
+
+        String ackJson = objectMapper.writeValueAsString(ack);
+        session.sendMessage(new TextMessage(ackJson));
     }
 
     private String getUri(final WebSocketSession session) {
