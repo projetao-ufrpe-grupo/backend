@@ -3,6 +3,7 @@ package com.mewebstudio.javaspringbootboilerplate.service.websocket;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mewebstudio.javaspringbootboilerplate.dto.ws.WebsocketIdentifier;
 import com.mewebstudio.javaspringbootboilerplate.dto.ws.WsRequestBody;
+import com.mewebstudio.javaspringbootboilerplate.entity.MessageStatus;
 import com.mewebstudio.javaspringbootboilerplate.repository.ChatMessageRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -112,7 +113,7 @@ public class WebSocketCacheService {
                 userTo.getSession().sendMessage(new TextMessage(payload));
                 log.info("Message successfully send to {}", userTo);
             }
-            this.chatMessageRepository.save(requestBody.transformToChatMessage());
+            this.chatMessageRepository.save(requestBody.transformToChatMessage(MessageStatus.SENT));
         } catch (Exception e) {
             log.error(EXCEPTION_MESSAGE, ExceptionUtils.getMessage(e));
         }

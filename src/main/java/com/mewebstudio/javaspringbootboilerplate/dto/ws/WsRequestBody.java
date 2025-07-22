@@ -1,6 +1,7 @@
 package com.mewebstudio.javaspringbootboilerplate.dto.ws;
 
 import com.mewebstudio.javaspringbootboilerplate.entity.ChatMessage;
+import com.mewebstudio.javaspringbootboilerplate.entity.MessageStatus;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -9,6 +10,8 @@ import java.util.UUID;
 @Getter
 @Setter
 public class WsRequestBody {
+    String messageId;
+
     String from;
 
     String to;
@@ -19,14 +22,14 @@ public class WsRequestBody {
 
     long date;
 
-    public ChatMessage transformToChatMessage() {
+    public ChatMessage transformToChatMessage(MessageStatus status) {
         ChatMessage chatMessage = new ChatMessage();
         chatMessage.setFromUser(UUID.fromString(from));
         chatMessage.setToUser(UUID.fromString(to));
         chatMessage.setContent(content);
         chatMessage.setType(type);
         chatMessage.setSentAt(java.time.OffsetDateTime.now());
-        chatMessage.setStatus("SENT"); // Default status
+        chatMessage.setStatus(status); // Default status
         return chatMessage;
     }
 }
