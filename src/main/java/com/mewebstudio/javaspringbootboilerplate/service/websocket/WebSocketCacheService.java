@@ -66,7 +66,7 @@ public class WebSocketCacheService {
      */
     public void deleteSession(String key) {
         WebsocketIdentifier websocketIdentifier = getOrDefault(key);
-        if (websocketIdentifier == null) {
+        if (websocketIdentifier == null || websocketIdentifier.getSession() == null) {
             log.error("Unable to remove the websocket session; serious error!");
             return;
         }
@@ -100,13 +100,24 @@ public class WebSocketCacheService {
      */
     @Transactional
     public void sendPrivateMessage(WsRequestBody requestBody) {
-        log.info("Sending private message to: {}", requestBody.getTo());
+        WebsocketIdentifier userTo = getOrDefault(requestBody.getTo());
+        if (userTo == null) {
+            log.error("User or Session not found in cache for user: {}, returning...", requestBody.getTo());
+            this.chatMessageRepository.save(requestBody.transformToChatMessage(MessageStatus.SENT));
+            return;
+        }
 
         requestBody.setType("private");
         ZoneId zone = ZoneId.of("America/Sao_Paulo");
         ZonedDateTime zonedDateTime = ZonedDateTime.now(zone);
         requestBody.setDate(zonedDateTime.toInstant().toEpochMilli());
+        String payload;
         try {
+            payload = objectMapper.writeValueAsString(requestBody);
+            if (userTo.getSession() != null) {
+                userTo.getSession().sendMessage(new TextMessage(payload));
+                log.info("Message successfully send to {}", userTo);
+            }
             this.chatMessageRepository.save(requestBody.transformToChatMessage(MessageStatus.SENT));
         } catch (Exception e) {
             log.error(EXCEPTION_MESSAGE, ExceptionUtils.getMessage(e));

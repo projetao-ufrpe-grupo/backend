@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,11 +26,11 @@ public class CreateAnuncioRequest {
     private Double aluguel;
 
     @Schema(description = "Valor do condomínio", example = "350.00")
-    @Positive(message = "{positive}")
+    @PositiveOrZero(message = "{positive_or_zero}")
     private Double condominio;
 
     @Schema(description = "Valor do caução (se aplicável)", example = "3000.00")
-    @Positive(message = "{positive}")
+    @PositiveOrZero(message = "{positive_or_zero}")
     private Double caucao;
 
     @Schema(description = "Duração mínima do contrato em meses", example = "12")
@@ -41,7 +42,6 @@ public class CreateAnuncioRequest {
     private Integer area;
 
     @Schema(description = "Descrição detalhada do imóvel", example = "Apartamento arejado com vista para o parque.", requiredMode = Schema.RequiredMode.REQUIRED)
-    @NotBlank(message = "{not_blank}")
     private String descricao;
 
     @Schema(description = "Tipo do imóvel", example = "APARTAMENTO", requiredMode = Schema.RequiredMode.REQUIRED)
