@@ -1,23 +1,26 @@
 package com.mewebstudio.javaspringbootboilerplate.service.websocket;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mewebstudio.javaspringbootboilerplate.dto.ws.WebsocketIdentifier;
-import com.mewebstudio.javaspringbootboilerplate.dto.ws.WsRequestBody;
-import com.mewebstudio.javaspringbootboilerplate.entity.MessageStatus;
-import com.mewebstudio.javaspringbootboilerplate.repository.ChatMessageRepository;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.socket.TextMessage;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.socket.TextMessage;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mewebstudio.javaspringbootboilerplate.dto.ws.WebsocketIdentifier;
+import com.mewebstudio.javaspringbootboilerplate.dto.ws.WsRequestBody;
+import com.mewebstudio.javaspringbootboilerplate.entity.MessageStatus;
+import com.mewebstudio.javaspringbootboilerplate.repository.ChatMessageRepository;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -63,7 +66,7 @@ public class WebSocketCacheService {
      */
     public void deleteSession(String key) {
         WebsocketIdentifier websocketIdentifier = getOrDefault(key);
-        if (websocketIdentifier == null || websocketIdentifier.getSession() == null){
+        if (websocketIdentifier == null) {
             log.error("Unable to remove the websocket session; serious error!");
             return;
         }
@@ -97,22 +100,13 @@ public class WebSocketCacheService {
      */
     @Transactional
     public void sendPrivateMessage(WsRequestBody requestBody) {
-        WebsocketIdentifier userTo = getOrDefault(requestBody.getTo());
-        if (userTo == null) {
-            log.error("User or Session not found in cache for user: {}, returning...", requestBody.getTo());
-            return;
-        }
+        log.info("Sending private message to: {}", requestBody.getTo());
+
         requestBody.setType("private");
         ZoneId zone = ZoneId.of("America/Sao_Paulo");
         ZonedDateTime zonedDateTime = ZonedDateTime.now(zone);
         requestBody.setDate(zonedDateTime.toInstant().toEpochMilli());
-        String payload;
         try {
-            payload = objectMapper.writeValueAsString(requestBody);
-            if (userTo.getSession() != null) {
-                userTo.getSession().sendMessage(new TextMessage(payload));
-                log.info("Message successfully send to {}", userTo);
-            }
             this.chatMessageRepository.save(requestBody.transformToChatMessage(MessageStatus.SENT));
         } catch (Exception e) {
             log.error(EXCEPTION_MESSAGE, ExceptionUtils.getMessage(e));
@@ -126,8 +120,8 @@ public class WebSocketCacheService {
      */
     public void sendMessage(final String from, final String to, final String type, final String payload) {
         WebsocketIdentifier userTo = getOrDefault(to);
-        if (userTo == null || userTo.getSession() == null) {
-            log.error("User or Session not found in cache for user: {}, returning...", to);
+        if (userTo == null) {
+            log.error("User not found in cache for user: {}, returning...", to);
             return;
         }
         WsRequestBody requestBody = new WsRequestBody();
